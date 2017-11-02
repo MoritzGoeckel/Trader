@@ -4,10 +4,11 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.moritzgoeckel.Data.Candle;
 import com.moritzgoeckel.Data.CandleStore;
-import com.moritzgoeckel.Util.Profiler;
-
-import java.time.LocalDateTime;
-import java.util.*;
+import com.moritzgoeckel.Market.Market;
+import com.moritzgoeckel.Market.OandaMarket;
+import com.moritzgoeckel.Market.PositionType;
+import com.oanda.v20.Context;
+import com.oanda.v20.account.AccountID;
 
 public class Main {
 
@@ -18,6 +19,21 @@ public class Main {
                     new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "eu-west-1"))
                     .build()
         );
+
+        Context ctx = new Context("https://api-fxpractice.oanda.com", "3a9a4f4ce5b4c5838dbfc24a7706151b-dd15e44936e5c3a48fbae5277d024e07");
+
+        Market m = new OandaMarket(ctx, new AccountID("101-004-2357917-002"));
+
+        PositionType type = m.isPositionOpen("EUR_USD");
+
+        System.out.println("Open position on EUR_USD -> " + type);
+
+        if(type != PositionType.None) {
+            System.out.println("Closing on EUR_USD -> " + type + " ...");
+            m.closePosition("EUR_USD");
+        }
+
+        //m.openPosition("EUR_USD", 1, PositionType.Sell);
 
         /*
             AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
@@ -46,6 +62,8 @@ public class Main {
         */
 
         //Read from table
+        /*
+
         Profiler p = new Profiler();
 
         System.out.println("Reading candles ...");
@@ -57,6 +75,8 @@ public class Main {
 
         p.print();
 
+        */
+
         //Strategy
 
         //Backtest API
@@ -66,16 +86,5 @@ public class Main {
         //Live API
 
         System.out.println("DONE");
-    }
-
-    public static void smthing(){
-
-        /*AccountID accountId = new AccountID("101-004-2357917-002"); //AutoTest -> 1000€ 10/1
-        List<String> instruments = new ArrayList<>(
-                Arrays.asList("EUR_USD", "USD_JPY", "GBP_USD", "USD_CHF"));*/
-
-        /*AccountListResponse list = ctx.account.list();
-        for(AccountProperties p : list.getAccounts())
-            System.out.println(p.getId());*/
     }
 }

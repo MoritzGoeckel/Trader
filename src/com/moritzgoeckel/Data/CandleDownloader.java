@@ -15,9 +15,17 @@ import java.util.List;
 
 public class CandleDownloader {
 
-    public static List<Candle> downloadCandles(InstrumentName instrument, CandlestickGranularity granularity, LocalDateTime from, LocalDateTime to) throws RequestException, ExecuteException {
-        Context ctx = new Context("https://api-fxpractice.oanda.com", "1fe66ad3be0bf2d4fa579667945faa15-656562a41bc087ed9c6e91f3b3947f99");
+    private Context ctx;
 
+    public CandleDownloader(String url, String token){
+        this.ctx = new Context(url, token);
+    }
+
+    public CandleDownloader(Context ctx){
+        this.ctx = ctx;
+    }
+
+    public List<Candle> downloadCandles(InstrumentName instrument, CandlestickGranularity granularity, LocalDateTime from, LocalDateTime to) throws RequestException, ExecuteException {
         List<Candle> allCandles = new LinkedList<>();
         LocalDateTime lastAddedDateTime = null;
 
