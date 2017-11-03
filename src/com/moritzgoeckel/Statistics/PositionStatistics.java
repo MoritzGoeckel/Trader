@@ -75,4 +75,6 @@ public class PositionStatistics {
     public double getNumberTrades(){
         return positionList.size();
     }
+
+    public List<Position> getPositionList(){ return new LinkedList<Position>(positionList); }
 }

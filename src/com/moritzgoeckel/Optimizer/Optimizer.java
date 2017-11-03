@@ -1,8 +1,6 @@
 package com.moritzgoeckel.Optimizer;
 
 import com.moritzgoeckel.Data.Candle;
-import com.moritzgoeckel.Data.PositionType;
-import com.moritzgoeckel.Market.BacktestMarket;
 import com.moritzgoeckel.Statistics.PositionStatistics;
 import com.moritzgoeckel.Strategy.Strategy;
 import com.moritzgoeckel.Strategy.StrategyDNA;
@@ -25,20 +23,8 @@ public class Optimizer {
 
     public void doGeneration() throws IllegalAccessException, InstantiationException {
         for(StrategyDNA dna : queue){
-            BacktestMarket market = new BacktestMarket();
-
-            Strategy strategy = dna.getStrategyLogic().newInstance();
-            strategy.setDna(dna);
-
-            for(Candle c : candleList) {
-                market.updateCandle(c);
-                strategy.candleCompleted(c, market);
-            }
-
-            if(market.isPositionOpen(candleList.get(0).getInstrument()) != PositionType.None)
-                market.closePosition(candleList.get(0).getInstrument());
-
-            double score = scoringFunction.apply(market.getStatistics());
+            PositionStatistics stats = Backtester.backtest(candleList, dna);
+            double score = scoringFunction.apply(stats);
             leaderboard.put(score, dna);
         }
     }
