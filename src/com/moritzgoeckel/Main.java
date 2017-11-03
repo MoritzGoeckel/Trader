@@ -4,15 +4,25 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.moritzgoeckel.Data.Candle;
 import com.moritzgoeckel.Data.CandleStore;
+import com.moritzgoeckel.Indicators.RollingIndicator;
+import com.moritzgoeckel.Indicators.SMA;
 import com.moritzgoeckel.Market.Market;
 import com.moritzgoeckel.Market.OandaMarket;
 import com.moritzgoeckel.Market.PositionType;
+import com.moritzgoeckel.Strategy.SMACrossover;
+import com.moritzgoeckel.Strategy.Strategy;
 import com.oanda.v20.Context;
 import com.oanda.v20.account.AccountID;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
+
+        /*
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
+            .withRegion(Regions.US_WEST_2)
+            .build();
+        */
 
         CandleStore store = new CandleStore(
             AmazonDynamoDBClientBuilder.standard().withEndpointConfiguration(
@@ -22,6 +32,9 @@ public class Main {
 
         Context ctx = new Context("https://api-fxpractice.oanda.com", "3a9a4f4ce5b4c5838dbfc24a7706151b-dd15e44936e5c3a48fbae5277d024e07");
 
+        //Live API
+
+        /*
         Market m = new OandaMarket(ctx, new AccountID("101-004-2357917-002"));
 
         PositionType type = m.isPositionOpen("EUR_USD");
@@ -33,12 +46,8 @@ public class Main {
             m.closePosition("EUR_USD");
         }
 
-        //m.openPosition("EUR_USD", 1, PositionType.Sell);
+        m.openPosition("EUR_USD", 1, PositionType.Sell);
 
-        /*
-            AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
-                .withRegion(Regions.US_WEST_2)
-                .build();
         */
 
         /*
@@ -62,6 +71,7 @@ public class Main {
         */
 
         //Read from table
+
         /*
 
         Profiler p = new Profiler();
@@ -77,13 +87,26 @@ public class Main {
 
         */
 
+        //Indicator
+
+        RollingIndicator sma = new SMA(10);
+        for(int i = 0; i < 30; i++){
+            String s = "NULL";
+            try{
+                s = Double.toString(sma.getNext((double) i));
+            }catch (Exception e){}
+            System.out.println(s);
+        }
+
         //Strategy
+        Strategy s = new SMACrossover();
+        s.setDna(s.getRandomDna());
 
         //Backtest API
 
-        //Optimize
 
-        //Live API
+
+        //Optimize
 
         System.out.println("DONE");
     }

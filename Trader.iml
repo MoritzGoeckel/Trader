@@ -29,5 +29,6 @@
     <orderEntry type="library" name="com.amazonaws:aws-java-sdk:1.11.221" level="project" />
     <orderEntry type="library" name="OANDA-v20-3.0.20" level="project" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.2" level="project" />
+    <orderEntry type="library" name="ta-lib-0.4.0" level="project" />
   </component>
 </module>
