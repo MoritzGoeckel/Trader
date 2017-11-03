@@ -22,4 +22,8 @@ public class StrategyDNA {
     public Class <? extends Strategy> getStrategyLogic() {
         return strategyLogic;
     }
+
+    public String getHash(){
+        return strategyLogic.getName() + "_" + values.toString(); //Todo: To be tested
+    }
 }

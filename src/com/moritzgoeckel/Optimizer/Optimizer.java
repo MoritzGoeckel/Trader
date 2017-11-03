@@ -1,21 +1,22 @@
 package com.moritzgoeckel.Optimizer;
 
 import com.moritzgoeckel.Data.Candle;
+import com.moritzgoeckel.Data.PositionType;
 import com.moritzgoeckel.Market.BacktestMarket;
 import com.moritzgoeckel.Statistics.PositionStatistics;
 import com.moritzgoeckel.Strategy.Strategy;
 import com.moritzgoeckel.Strategy.StrategyDNA;
 
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.Function;
 
 public class Optimizer {
-    List<Candle> candleList;
+    private List<Candle> candleList;
 
-    List<StrategyDNA> queue = new LinkedList<>();
-    SortedMap<Double, StrategyDNA> leaderboard = new TreeMap<>();
-    Function<PositionStatistics, Double> scoringFunction;
+    private List<StrategyDNA> queue = new LinkedList<>();
+    private SortedMap<Double, StrategyDNA> leaderboard = new TreeMap<>(Collections.reverseOrder());
+    private Function<PositionStatistics, Double> scoringFunction;
+    private Set<String> doneDna = new HashSet<>();
 
     public Optimizer(List<Candle> candleList, Function<PositionStatistics, Double> scoringFunction){
         this.candleList = candleList;
@@ -34,6 +35,9 @@ public class Optimizer {
                 strategy.candleCompleted(c, market);
             }
 
+            if(market.isPositionOpen(candleList.get(0).getInstrument()) != PositionType.None)
+                market.closePosition(candleList.get(0).getInstrument());
+
             double score = scoringFunction.apply(market.getStatistics());
             leaderboard.put(score, dna);
         }
@@ -41,8 +45,13 @@ public class Optimizer {
 
     public Optimizer addRandomToQueue(Class <? extends Strategy> strategyType, int amount) throws IllegalAccessException, InstantiationException {
         Strategy strategy = strategyType.newInstance();
-        for(int i = 0; i < amount; i++)
-            queue.add(strategy.getRandomDna()); //Todo: no double
+        for(int i = 0; i < amount; i++) {
+            StrategyDNA dna = strategy.getRandomDna();
+            if(!doneDna.contains(dna.getHash())) {
+                queue.add(dna);
+                doneDna.add(dna.getHash());
+            }
+        }
 
         return this;
     }
@@ -50,9 +59,24 @@ public class Optimizer {
     public Optimizer addOffspringToQueue(int untilLeaderboardIndex){
         Iterator<StrategyDNA> iterator = leaderboard.values().iterator();
 
-        for(int i = 0; i < untilLeaderboardIndex && iterator.hasNext(); i++)
-            queue.add(iterator.next());
+        for(int i = 0; i < untilLeaderboardIndex && iterator.hasNext(); i++) {
+            StrategyDNA dna = iterator.next();
+            if(!doneDna.contains(dna.getHash())) {
+                queue.add(dna);
+                doneDna.add(dna.getHash());
+            }
+        }
 
         return this;
+    }
+
+    public List<StrategyDNA> getLeaderboard(int amount){
+        List<StrategyDNA> output = new LinkedList<>();
+        Iterator<StrategyDNA> iterator = leaderboard.values().iterator();
+
+        for(int i = 0; i < amount && iterator.hasNext(); i++)
+            output.add(iterator.next());
+
+        return output;
     }
 }
