@@ -2,17 +2,12 @@ package com.moritzgoeckel;
 
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.moritzgoeckel.Data.Candle;
 import com.moritzgoeckel.Data.CandleStore;
 import com.moritzgoeckel.Indicators.RollingIndicator;
 import com.moritzgoeckel.Indicators.SMA;
-import com.moritzgoeckel.Market.Market;
-import com.moritzgoeckel.Market.OandaMarket;
-import com.moritzgoeckel.Market.PositionType;
 import com.moritzgoeckel.Strategy.SMACrossover;
 import com.moritzgoeckel.Strategy.Strategy;
 import com.oanda.v20.Context;
-import com.oanda.v20.account.AccountID;
 
 public class Main {
 
@@ -103,10 +98,10 @@ public class Main {
         s.setDna(s.getRandomDna());
 
         //Backtest API
-
-
+        //Todo
 
         //Optimize
+        //Todo
 
         System.out.println("DONE");
     }
