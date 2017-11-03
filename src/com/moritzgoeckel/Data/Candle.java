@@ -8,18 +8,22 @@ import java.time.LocalDateTime;
 public class Candle extends Candlestick {
 
     private LocalDateTime time = null;
+    private String instrument, granularity;
 
     public Candle(){
 
     }
 
-    public Candle(Candlestick candle){
+    public Candle(Candlestick candle, String instrument, String granularity){
         this.setTime(candle.getTime());
         this.setAsk(candle.getAsk());
         this.setBid(candle.getBid());
         this.setMid(candle.getMid());
         this.setVolume(candle.getVolume());
         this.setComplete(candle.getComplete());
+
+        this.instrument = instrument;
+        this.granularity = granularity;
     }
 
     private static LocalDateTime stringToDateTime(String s){
@@ -40,5 +44,9 @@ public class Candle extends Candlestick {
 
     public LocalDateTime getLocalDateTime() {
         return time;
+    }
+
+    public String getInstrument() {
+        return instrument;
     }
 }

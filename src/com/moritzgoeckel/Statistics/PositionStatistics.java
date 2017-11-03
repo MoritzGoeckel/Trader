@@ -1,5 +1,7 @@
 package com.moritzgoeckel.Statistics;
 
+import com.moritzgoeckel.Data.Position;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;

@@ -1,18 +1,13 @@
 package com.moritzgoeckel.Market;
 
+import com.moritzgoeckel.Data.PositionType;
 import com.oanda.v20.Context;
 import com.oanda.v20.account.AccountID;
-import com.oanda.v20.account.AccountListResponse;
-import com.oanda.v20.account.AccountProperties;
 import com.oanda.v20.order.MarketOrderRequest;
 import com.oanda.v20.order.OrderCreateRequest;
-import com.oanda.v20.order.OrderType;
 import com.oanda.v20.position.Position;
 import com.oanda.v20.position.PositionCloseRequest;
-import com.oanda.v20.position.PositionListOpenResponse;
-import com.oanda.v20.position.PositionSide;
 import com.oanda.v20.primitives.InstrumentName;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 
 import java.util.List;
 

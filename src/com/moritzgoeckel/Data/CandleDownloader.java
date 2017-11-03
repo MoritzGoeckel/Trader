@@ -47,7 +47,7 @@ public class CandleDownloader {
                 break GET_NEW_CANDLES;
 
             for(Candlestick rawCandle : newCandles){
-                Candle candle = new Candle(rawCandle);
+                Candle candle = new Candle(rawCandle, instrument.toString(), granularity.toString());
                 if(candle.getLocalDateTime().isBefore(to) && (lastAddedDateTime == null || candle.getLocalDateTime().isAfter(lastAddedDateTime))){
                     allCandles.add(candle);
                     lastAddedDateTime = candle.getLocalDateTime();

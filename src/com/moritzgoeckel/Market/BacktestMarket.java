@@ -1,11 +1,10 @@
 package com.moritzgoeckel.Market;
 
 import com.moritzgoeckel.Data.Candle;
-import com.moritzgoeckel.Statistics.Position;
+import com.moritzgoeckel.Data.Position;
+import com.moritzgoeckel.Data.PositionType;
 import com.moritzgoeckel.Statistics.PositionStatistics;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;

@@ -1,6 +1,4 @@
-package com.moritzgoeckel.Statistics;
-
-import com.moritzgoeckel.Market.PositionType;
+package com.moritzgoeckel.Data;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -23,7 +21,7 @@ public class Position{
 
     private PositionType type;
 
-    double getProfit(){
+    public double getProfit(){
         if(type == PositionType.Buy)
             return out - in;
 
@@ -33,7 +31,7 @@ public class Position{
         throw new RuntimeException("Position type is invalid, None is in this context not allowed");
     }
 
-    long getDurationSeconds(){
+    public long getDurationSeconds(){
         return timeIn.until(timeOut, ChronoUnit.SECONDS);
     }
 }

@@ -7,10 +7,10 @@ import java.time.Duration;
 import java.util.Map;
 
 public interface Strategy {
-    void setDna(Map<String, Double> dna);
-    void candleCompleted(Candle candle, Market market, String instrument);
+    void setDna(StrategyDNA dna);
+    void candleCompleted(Candle candle, Market market);
     int getPreperationTime();
-    Map<String, Double> getDna();
-    Map<String, Double> getOffspringDna();
-    Map<String, Double> getRandomDna();
+    StrategyDNA getDna();
+    StrategyDNA getOffspringDna();
+    StrategyDNA getRandomDna();
 }
