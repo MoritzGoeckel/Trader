@@ -11,8 +11,9 @@ public class Candle extends Candlestick {
     private LocalDateTime time = null;
     private String instrument, granularity;
 
-    public Candle(){
-
+    public Candle(String instrument, String granularity){
+        this.instrument = instrument;
+        this.granularity = granularity;
     }
 
     public Candle(Candlestick candle, String instrument, String granularity){

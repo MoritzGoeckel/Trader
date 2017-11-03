@@ -57,10 +57,10 @@ public class BacktestMarket implements Market {
         p.timeOut = currentCandle.getLocalDateTime();
 
         if(p.getType() == PositionType.Buy)
-            p.in = currentCandle.getBid().getC().doubleValue();
+            p.out = currentCandle.getBid().getC().doubleValue();
 
         if(p.getType() == PositionType.Sell)
-            p.in = currentCandle.getAsk().getC().doubleValue();
+            p.out = currentCandle.getAsk().getC().doubleValue();
 
         historicPositions.add(p);
     }

@@ -8,6 +8,10 @@ public class Position{
     public LocalDateTime timeIn, timeOut;
     public String instrument;
 
+    public Position(){
+
+    }
+
     public PositionType getType() {
         return type;
     }

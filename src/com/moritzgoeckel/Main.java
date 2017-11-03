@@ -74,7 +74,7 @@ public class Main {
 
         //Mass download
         System.out.println("Downloading candles ...");
-        List<Candle> candles = downloader.downloadCandles(new InstrumentName("SOYBN_USD"), CandlestickGranularity.M30, LocalDateTime.now().minusDays(365), LocalDateTime.now());
+        List<Candle> candles = downloader.downloadCandles(new InstrumentName("EUR_USD"), CandlestickGranularity.M30, LocalDateTime.now().minusDays(365), LocalDateTime.now());
 
         System.out.println("Len: " + candles.size());
         System.out.println(candles.get(0).getTime());
@@ -91,8 +91,8 @@ public class Main {
         Profiler p = new Profiler();
 
         System.out.println("Reading candles ...");
-        List<Candle> optimizingCandles = store.loadCandles("SOYBN_USD", "M30", LocalDateTime.now().minusDays(365), LocalDateTime.now().minusDays(65));
-        List<Candle> validationCandles = store.loadCandles("SOYBN_USD", "M30", LocalDateTime.now().minusDays(60), LocalDateTime.now().minusDays(0));
+        List<Candle> optimizingCandles = store.loadCandles("EUR_USD", "M30", LocalDateTime.now().minusDays(365), LocalDateTime.now().minusDays(65));
+        List<Candle> validationCandles = store.loadCandles("EUR_USD", "M30", LocalDateTime.now().minusDays(60), LocalDateTime.now().minusDays(0));
 
         System.out.println("OPTIMIZATION: " + optimizingCandles.size());
         System.out.println(optimizingCandles.get(0).getTime());

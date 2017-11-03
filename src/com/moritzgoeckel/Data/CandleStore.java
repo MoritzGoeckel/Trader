@@ -49,7 +49,7 @@ public class CandleStore {
 
 
         for (Map<String, AttributeValue> item : result.getItems()){
-            Candle candle = new Candle();
+            Candle candle = new Candle(instrument, granularity);
 
             if(item.containsKey("ask_c")) {
                 CandlestickData ask = new CandlestickData();

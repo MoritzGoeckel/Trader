@@ -2,6 +2,7 @@ package com.moritzgoeckel.Statistics;
 
 import com.moritzgoeckel.Data.Position;
 
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -104,10 +105,12 @@ public class PositionStatistics {
     }
 
     private static String formatDouble(Double d){
-        int desiredLen = 7;
-        String s = d.toString();
+        DecimalFormat df = new DecimalFormat("#.#");
+        df.setMaximumFractionDigits(7);
 
-        if(s.indexOf('.') >= desiredLen - 1)
+        return df.format(d);
+
+        /*if(s.indexOf('.') >= desiredLen - 1)
             return s.substring(0, s.indexOf('.'));
 
         if (s.length() > desiredLen)
@@ -121,6 +124,6 @@ public class PositionStatistics {
         while (b.length() < desiredLen)
             b.append(0);
 
-        return b.toString();
+        return b.toString();*/
     }
 }
