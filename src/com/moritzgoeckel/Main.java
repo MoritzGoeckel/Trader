@@ -91,8 +91,8 @@ public class Main {
         Profiler p = new Profiler();
 
         System.out.println("Reading candles ...");
-        List<Candle> optimizingCandles = store.loadCandles("EUR_USD", "M30", LocalDateTime.now().minusDays(365), LocalDateTime.now().minusDays(65));
-        List<Candle> validationCandles = store.loadCandles("EUR_USD", "M30", LocalDateTime.now().minusDays(60), LocalDateTime.now().minusDays(0));
+        List<Candle> optimizingCandles = store.loadCandles("SUGAR_USD", "M30", LocalDateTime.now().minusDays(365), LocalDateTime.now().minusDays(65));
+        List<Candle> validationCandles = store.loadCandles("SUGAR_USD", "M30", LocalDateTime.now().minusDays(60), LocalDateTime.now().minusDays(0));
 
         System.out.println("OPTIMIZATION: " + optimizingCandles.size());
         System.out.println(optimizingCandles.get(0).getTime());
@@ -103,8 +103,6 @@ public class Main {
         System.out.println(validationCandles.get(validationCandles.size() - 1).getTime());
 
         p.print();
-
-
 
         //Indicator
 
@@ -129,7 +127,7 @@ public class Main {
 
         Profiler p2 = new Profiler();
 
-        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getPositiveTradesRatio());
+        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getSharpe());
         optimizer.addRandomToQueue(SMACrossover.class, 100);
         optimizer.processQueue();
 
@@ -139,12 +137,16 @@ public class Main {
             optimizer.addOffspringToQueue(10, 50);
             optimizer.addOffspringToQueue(20, 5);
 
-            optimizer.addRandomToQueue(SMACrossover.class, 50);
+            int fillSeeds = 50 - optimizer.getQueueLength();
+            if(fillSeeds > 0)
+                optimizer.addRandomToQueue(SMACrossover.class, fillSeeds);
+
+            System.out.print("\rRound: " + i);
 
             optimizer.processQueue();
         }
 
-        System.out.println("Processed: " + optimizer.getDoneStrategiesCount());
+        System.out.println("\nProcessed: " + optimizer.getDoneStrategiesCount());
 
         List<StrategyDNA> best = optimizer.getLeaderboard(10);
 
@@ -160,5 +162,7 @@ public class Main {
         p2.print();
 
         System.out.println("DONE");
+
+        //Todo: Get out before the weekend -> Strategy
     }
 }
