@@ -14,22 +14,24 @@ public class SMA implements RollingIndicator {
     }
 
     @Override
-    public double getNext(double value) {
+    public void pushValue(double value) {
         sum += value;
         valueBuffer.add(value);
 
         while (valueBuffer.size() > timeframe)
             sum -= valueBuffer.remove(0);
-
-        return get();
     }
 
     @Override
-    public double get() {
-        int size = valueBuffer.size();
-        if(size == timeframe)
-            return sum / size;
+    public boolean isReady() {
+        return valueBuffer.size() == timeframe;
+    }
+
+    @Override
+    public double getIndicatorValue() {
+        if(isReady())
+            return sum / valueBuffer.size();
         else
-            throw new RuntimeException("Not ready yet: " + size + " / " + timeframe);
+            throw new RuntimeException("Not ready yet: " + valueBuffer.size() + " / " + timeframe);
     }
 }

@@ -24,7 +24,10 @@ public class PositionStatistics {
 
         Collections.sort(profits);
 
-        median = profits.get(profits.size() / 2);
+        if(positionList.size() != 0)
+            median = profits.get(profits.size() / 2);
+        else
+            median = 0;
 
         double mean = getMean();
         for(double p : profits) {
@@ -53,14 +56,20 @@ public class PositionStatistics {
     }
 
     public double getMean(){
-        return profit / getNumberTrades();
+        return profit / (double) getNumberTrades();
     }
 
     public double getSharpe(){
+        if(getSd() == 0 || getProfit() == 0)
+            return 0;
+
         return getProfit() / getSd();
     }
 
     public double getSemiSharpe(){
+        if(getSemiSd() == 0 || getProfit() == 0)
+            return 0;
+
         return getProfit() / getSemiSd();
     }
 
@@ -69,12 +78,49 @@ public class PositionStatistics {
     }
 
     public double getPositiveTradesRatio(){
-        return positiveTrades / getNumberTrades();
+        if(getNumberTrades() == 0)
+            return 0;
+
+        return (double) positiveTrades / (double) getNumberTrades();
     }
 
-    public double getNumberTrades(){
+    public int getNumberTrades(){
         return positionList.size();
     }
 
-    public List<Position> getPositionList(){ return new LinkedList<Position>(positionList); }
+    public List<Position> getPositionList(){ return new LinkedList<>(positionList); }
+
+    public void printSummary(){
+        System.out.println(
+                "Mean:\t\t" + formatDouble(getMean()) + "\r\n" +
+                "Median:\t\t" + formatDouble(getMedian()) + "\r\n" +
+                "Profitable:\t" + formatDouble(getPositiveTradesRatio()*100d) + "%" + "\r\n" +
+                "Profit:\t\t" + formatDouble(getProfit()) + "\r\n" +
+                "Sharpe:\t\t" + formatDouble(getSharpe()) + "\r\n" +
+                "SemiSharpe:\t" + formatDouble(getSemiSharpe()) + "\r\n" +
+                "SD:\t" + formatDouble(getSd()) + "\r\n" +
+                "Trades:\t\t" + getNumberTrades()
+        );
+    }
+
+    private static String formatDouble(Double d){
+        int desiredLen = 7;
+        String s = d.toString();
+
+        if(s.indexOf('.') >= desiredLen - 1)
+            return s.substring(0, s.indexOf('.'));
+
+        if (s.length() > desiredLen)
+            s = s.substring(0, desiredLen);
+
+        StringBuilder b = new StringBuilder(s);
+
+        if (b.length() < desiredLen && !s.contains("."))
+            b.append(".");
+
+        while (b.length() < desiredLen)
+            b.append(0);
+
+        return b.toString();
+    }
 }

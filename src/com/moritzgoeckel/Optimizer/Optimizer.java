@@ -21,12 +21,17 @@ public class Optimizer {
         this.scoringFunction = scoringFunction;
     }
 
-    public void doGeneration() throws IllegalAccessException, InstantiationException {
+    public void processQueue() throws IllegalAccessException, InstantiationException {
         for(StrategyDNA dna : queue){
             PositionStatistics stats = Backtester.backtest(candleList, dna);
             double score = scoringFunction.apply(stats);
             leaderboard.put(score, dna);
         }
+        queue.clear();
+    }
+
+    public Optimizer addRandomToQueue(Class <? extends Strategy> strategyType) throws IllegalAccessException, InstantiationException {
+        return addRandomToQueue(strategyType, 1);
     }
 
     public Optimizer addRandomToQueue(Class <? extends Strategy> strategyType, int amount) throws IllegalAccessException, InstantiationException {
@@ -42,14 +47,25 @@ public class Optimizer {
         return this;
     }
 
-    public Optimizer addOffspringToQueue(int untilLeaderboardIndex){
+    public Optimizer addOffspringToQueue(int untilLeaderboardIndex) throws IllegalAccessException, InstantiationException{
+        return addOffspringToQueue(untilLeaderboardIndex, 1);
+    }
+
+    public Optimizer addOffspringToQueue(int untilLeaderboardIndex, int amount) throws IllegalAccessException, InstantiationException {
         Iterator<StrategyDNA> iterator = leaderboard.values().iterator();
 
         for(int i = 0; i < untilLeaderboardIndex && iterator.hasNext(); i++) {
-            StrategyDNA dna = iterator.next();
-            if(!doneDna.contains(dna.getHash())) {
-                queue.add(dna);
-                doneDna.add(dna.getHash());
+            StrategyDNA parentDna = iterator.next();
+
+            for(int done = 0; done < amount; done++) {
+                Strategy s = parentDna.getStrategyLogic().newInstance();
+                s.setDna(parentDna);
+                StrategyDNA childDna = s.getOffspringDna();
+
+                if (!doneDna.contains(childDna.getHash())) {
+                    queue.add(childDna);
+                    doneDna.add(childDna.getHash());
+                }
             }
         }
 
@@ -64,5 +80,13 @@ public class Optimizer {
             output.add(iterator.next());
 
         return output;
+    }
+
+    public int getQueueLength() {
+        return this.queue.size();
+    }
+
+    public int getDoneStrategiesCount() {
+        return this.doneDna.size() - this.queue.size();
     }
 }

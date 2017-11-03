@@ -93,11 +93,11 @@ public class CandleStore {
             return -1;
     }
 
-    public void saveCandle(List<Candle> candles, String instrument, String granularity) {
+    public void saveCandle(List<Candle> candles) {
         List<WriteRequest> requests = new LinkedList<>();
 
         for(Candle candle : candles) {
-            HashMap<String, AttributeValue> values = convertCandleToDynamoDBItem(candle, instrument, granularity);
+            HashMap<String, AttributeValue> values = convertCandleToDynamoDBItem(candle, candle.getInstrument(), candle.getGranularity());
             client.putItem("Candles", values);
 
             requests.add(new WriteRequest().withPutRequest(new PutRequest().withItem(values)));

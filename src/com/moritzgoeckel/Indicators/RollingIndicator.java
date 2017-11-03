@@ -1,6 +1,7 @@
 package com.moritzgoeckel.Indicators;
 
 public interface RollingIndicator {
-    double getNext(double value);
-    double get();
+    void pushValue(double value);
+    boolean isReady();
+    double getIndicatorValue();
 }

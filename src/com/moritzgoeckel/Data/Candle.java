@@ -1,6 +1,7 @@
 package com.moritzgoeckel.Data;
 
 import com.oanda.v20.instrument.Candlestick;
+import com.oanda.v20.instrument.CandlestickData;
 import com.oanda.v20.primitives.DateTime;
 
 import java.time.LocalDateTime;
@@ -26,8 +27,26 @@ public class Candle extends Candlestick {
         this.granularity = granularity;
     }
 
+    private void generateMid(){
+        CandlestickData mid = new CandlestickData();
+        mid.setC((getAsk().getC().doubleValue() + getBid().getC().doubleValue()) / 2d);
+        mid.setO((getAsk().getO().doubleValue() + getBid().getO().doubleValue()) / 2d);
+        mid.setH((getAsk().getH().doubleValue() + getBid().getH().doubleValue()) / 2d);
+        mid.setL((getAsk().getL().doubleValue() + getBid().getL().doubleValue()) / 2d);
+
+        this.setMid(mid);
+    }
+
     private static LocalDateTime stringToDateTime(String s){
         return LocalDateTime.parse(s.substring(0, s.length() - 1));
+    }
+
+    @Override
+    public CandlestickData getMid() {
+        if(super.getMid() == null)
+            generateMid();
+
+        return super.getMid();
     }
 
     @Override
@@ -48,5 +67,9 @@ public class Candle extends Candlestick {
 
     public String getInstrument() {
         return instrument;
+    }
+
+    public String getGranularity() {
+        return granularity;
     }
 }
