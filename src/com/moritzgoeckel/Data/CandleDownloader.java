@@ -25,6 +25,17 @@ public class CandleDownloader {
         this.ctx = ctx;
     }
 
+    public Candle getNewestCompleteCandle(InstrumentName instrumentName, CandlestickGranularity granularity) throws ExecuteException, RequestException {
+        List<Candle> candleList = downloadCandles(instrumentName, granularity, LocalDateTime.now().minusHours(8), LocalDateTime.now().plusHours(8));
+        Candle[] allCandles = candleList.toArray(new Candle[candleList.size()]);
+        for(int i = allCandles.length - 1; i > 0; i--){
+            if(allCandles[i].getComplete())
+                return allCandles[i];
+        }
+
+        throw new RuntimeException("Cant find candle!");
+    }
+
     public List<Candle> downloadCandles(InstrumentName instrument, CandlestickGranularity granularity, LocalDateTime from, LocalDateTime to) throws RequestException, ExecuteException {
         List<Candle> allCandles = new LinkedList<>();
         LocalDateTime lastAddedDateTime = null;
