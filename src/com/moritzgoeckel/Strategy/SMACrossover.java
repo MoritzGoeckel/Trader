@@ -1,9 +1,12 @@
 package com.moritzgoeckel.Strategy;
 
 import com.moritzgoeckel.Data.Candle;
+import com.moritzgoeckel.Data.Position;
 import com.moritzgoeckel.Indicators.SMA;
 import com.moritzgoeckel.Market.Market;
 import com.moritzgoeckel.Data.PositionType;
+
+import java.time.DayOfWeek;
 
 public class SMACrossover implements Strategy {
 
@@ -26,24 +29,32 @@ public class SMACrossover implements Strategy {
         sma_1.pushValue(value);
         sma_2.pushValue(value);
 
-        if(sma_1.isReady() && sma_2.isReady()) {
-            PositionType openPosition = market.isPositionOpen(candle.getInstrument());
+        PositionType openPosition = market.isPositionOpen(candle.getInstrument());
 
-            double one = sma_1.getIndicatorValue();
-            double two = sma_2.getIndicatorValue();
-
-            if (one > two && openPosition != PositionType.Buy) {
-                if (openPosition == PositionType.Sell)
-                    market.closePosition(candle.getInstrument());
-
-                market.openPosition(candle.getInstrument(), 1, PositionType.Buy);
+        if(candle.getLocalDateTime().getDayOfWeek() == DayOfWeek.FRIDAY && candle.getLocalDateTime().getHour() >= 9){
+            //Market is closing, get out
+            if(openPosition != PositionType.None) {
+                market.closePosition(candle.getInstrument());
             }
+        }
+        else {
+            if (sma_1.isReady() && sma_2.isReady()) {
+                double one = sma_1.getIndicatorValue();
+                double two = sma_2.getIndicatorValue();
 
-            if (one < two && openPosition != PositionType.Sell) {
-                if (openPosition == PositionType.Buy)
-                    market.closePosition(candle.getInstrument());
+                if (one > two && openPosition != PositionType.Buy) {
+                    if (openPosition == PositionType.Sell)
+                        market.closePosition(candle.getInstrument());
 
-                market.openPosition(candle.getInstrument(), 1, PositionType.Sell);
+                    market.openPosition(candle.getInstrument(), 1, PositionType.Buy);
+                }
+
+                if (one < two && openPosition != PositionType.Sell) {
+                    if (openPosition == PositionType.Buy)
+                        market.closePosition(candle.getInstrument());
+
+                    market.openPosition(candle.getInstrument(), 1, PositionType.Sell);
+                }
             }
         }
     }

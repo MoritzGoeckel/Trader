@@ -1,28 +1,40 @@
 package com.moritzgoeckel.Statistics;
 
 import com.moritzgoeckel.Data.Position;
+import com.moritzgoeckel.Data.PositionType;
 
 import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.time.temporal.ChronoUnit.MINUTES;
+
 public class PositionStatistics {
 
     private List<Position> positionList;
     private double profit = 0, median, sd = 0, semiSd = 0;
     private int positiveTrades = 0;
+    private double medianDurationMinutes, durationMinutesSD = 0;
 
     public PositionStatistics(List<Position> positionList){
         this.positionList = positionList;
 
         List<Double> profits = new LinkedList<>();
+        List<Double> durations = new LinkedList<>();
+        double durationTotal = 0d;
 
         for(Position p : positionList) {
             profit += p.getProfit();
             profits.add(p.getProfit());
+
+            durations.add(p.getDurationSeconds() / 60d);
+            durationTotal += p.getDurationSeconds() / 60d;
         }
 
+        medianDurationMinutes = (double)durationTotal / (double) durations.size();
+
+        //Collections.sort(minutes);
         Collections.sort(profits);
 
         if(positionList.size() != 0)
@@ -40,8 +52,13 @@ public class PositionStatistics {
                 positiveTrades++;
         }
 
-        sd = Math.sqrt(sd / getNumberTrades());
-        semiSd = Math.sqrt(semiSd/(getNumberTrades() - positiveTrades));
+        for(Double d : durations){
+            durationMinutesSD += Math.pow(d - medianDurationMinutes, 2);
+        }
+
+        sd = Math.sqrt(sd / (double) getNumberTrades());
+        semiSd = Math.sqrt(semiSd / (double) (getNumberTrades() - positiveTrades));
+        durationMinutesSD = Math.sqrt(durationMinutesSD / (double) durations.size());
     }
 
     public double getSd(){
@@ -91,39 +108,44 @@ public class PositionStatistics {
 
     public List<Position> getPositionList(){ return new LinkedList<>(positionList); }
 
+    public void printPositionHistory(){
+        for(Position p : positionList){
+            System.out.printf("%-5s %-7s %-15s %-7s \r\n",
+                    p.getType(),
+                    formatDouble(p.getDurationSeconds() / 60d / 60d) + "h",
+                    "PnL:" + (p.getProfit() < 0 ? "" : " ") + formatDouble(p.getProfit()),
+                    "("+formatDouble(p.getProfit() / profit * 100) + "%)"
+            );
+        }
+    }
+
+    public double getMedianDurationMinutes(){
+        return medianDurationMinutes;
+    }
+
+    public double getDurationMinutesSD(){
+        return durationMinutesSD;
+    }
+
     public void printSummary(){
         System.out.println(
-                "Mean:\t\t" + formatDouble(getMean()) + "\r\n" +
-                "Median:\t\t" + formatDouble(getMedian()) + "\r\n" +
-                "Profitable:\t" + formatDouble(getPositiveTradesRatio()*100d) + "%" + "\r\n" +
-                "Profit:\t\t" + formatDouble(getProfit()) + "\r\n" +
-                "Sharpe:\t\t" + formatDouble(getSharpe()) + "\r\n" +
-                "SemiSharpe:\t" + formatDouble(getSemiSharpe()) + "\r\n" +
-                "SD:\t" + formatDouble(getSd()) + "\r\n" +
-                "Trades:\t\t" + getNumberTrades()
+                "Mean:\t\t\t" + formatDouble(getMean()) + "\r\n" +
+                "Median:\t\t\t" + formatDouble(getMedian()) + "\r\n" +
+                "Profitable:\t\t" + formatDouble(getPositiveTradesRatio()*100d) + "%" + "\r\n" +
+                "Profit:\t\t\t" + formatDouble(getProfit()) + "\r\n" +
+                "Sharpe:\t\t\t" + formatDouble(getSharpe()) + "\r\n" +
+                "SemiSharpe:\t\t" + formatDouble(getSemiSharpe()) + "\r\n" +
+                "SD:\t\t\t\t" + formatDouble(getSd()) + "\r\n" +
+                "Trades:\t\t\t" + getNumberTrades() + "\r\n" +
+                "avgDuration:\t" + formatDouble(getMedianDurationMinutes() / 60) + "h" + "\r\n" +
+                "durationSD:\t\t" + formatDouble(getDurationMinutesSD() / 60) + "h"
         );
     }
 
     private static String formatDouble(Double d){
         DecimalFormat df = new DecimalFormat("#.#");
-        df.setMaximumFractionDigits(7);
+        df.setMaximumFractionDigits(4);
 
         return df.format(d);
-
-        /*if(s.indexOf('.') >= desiredLen - 1)
-            return s.substring(0, s.indexOf('.'));
-
-        if (s.length() > desiredLen)
-            s = s.substring(0, desiredLen);
-
-        StringBuilder b = new StringBuilder(s);
-
-        if (b.length() < desiredLen && !s.contains("."))
-            b.append(".");
-
-        while (b.length() < desiredLen)
-            b.append(0);
-
-        return b.toString();*/
     }
 }

@@ -5,26 +5,14 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.moritzgoeckel.Data.Candle;
 import com.moritzgoeckel.Data.CandleDownloader;
 import com.moritzgoeckel.Data.CandleStore;
-import com.moritzgoeckel.Indicators.RollingIndicator;
-import com.moritzgoeckel.Indicators.SMA;
-import com.moritzgoeckel.Live.Trader;
-import com.moritzgoeckel.Market.Market;
-import com.moritzgoeckel.Market.OandaMarket;
 import com.moritzgoeckel.Optimizer.Backtester;
 import com.moritzgoeckel.Optimizer.Optimizer;
-import com.moritzgoeckel.Statistics.PositionStatistics;
 import com.moritzgoeckel.Strategy.SMACrossover;
-import com.moritzgoeckel.Strategy.Strategy;
 import com.moritzgoeckel.Strategy.StrategyDNA;
-import com.moritzgoeckel.Util.Profiler;
 import com.oanda.v20.Context;
-import com.oanda.v20.account.AccountID;
-import com.oanda.v20.instrument.CandlestickGranularity;
-import com.oanda.v20.primitives.InstrumentName;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Function;
 
 public class Main {
 
@@ -59,13 +47,13 @@ public class Main {
         store.saveCandle(candles);
         */
         //Read from table
-        /*
+
         List<Candle> optimizingCandles = store.loadCandles("SUGAR_USD", "M30", LocalDateTime.now().minusDays(365), LocalDateTime.now().minusDays(65));
         List<Candle> validationCandles = store.loadCandles("SUGAR_USD", "M30", LocalDateTime.now().minusDays(60), LocalDateTime.now().minusDays(0));
 
         System.out.println("Optimizing ...");
         optimize(optimizingCandles, validationCandles);
-        */
+
 
         /*List<Candle> preperation = store.loadCandles("SUGAR_USD", "M30", LocalDateTime.now().minusDays(30), LocalDateTime.now());
 
@@ -79,7 +67,7 @@ public class Main {
         Trader t = new Trader(dna, preperation);
         t.doCandle(downloader.getNewestCompleteCandle(new InstrumentName("SUGAR_USD"), CandlestickGranularity.M30), oandaMarket);*/
 
-        System.out.println(downloader.getNewestCompleteCandle(new InstrumentName("SUGAR_USD"), CandlestickGranularity.M30));
+        //System.out.println(downloader.getNewestCompleteCandle(new InstrumentName("SUGAR_USD"), CandlestickGranularity.M30));
 
         System.out.println("DONE");
 
@@ -96,6 +84,7 @@ public class Main {
             optimizer.addOffspringToQueue(5, 10);
             optimizer.addOffspringToQueue(10, 50);
             optimizer.addOffspringToQueue(20, 5);
+            optimizer.addOffspringToQueue(50, 5);
 
             int fillSeeds = 50 - optimizer.getQueueLength();
             if(fillSeeds > 0)
@@ -118,5 +107,6 @@ public class Main {
 
         System.out.println("# VALIDATION BACKTEST #");
         Backtester.backtest(validationCandles, best.get(0)).printSummary();
+        Backtester.backtest(validationCandles, best.get(0)).printPositionHistory();
     }
 }
