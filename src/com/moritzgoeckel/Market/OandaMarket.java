@@ -52,6 +52,7 @@ public class OandaMarket implements Market {
             throw new RuntimeException("PositionType cant be NONE");
 
         try {
+            System.out.println("Opening Oanda position: " + instrument + " of " + units);
             ctx.order.create(new OrderCreateRequest(this.account).setOrder(new MarketOrderRequest().setInstrument(instrument).setUnits(units)));
         }catch (Exception e) { System.out.println(e.getMessage()); e.printStackTrace(); }
     }
@@ -69,6 +70,7 @@ public class OandaMarket implements Market {
                 if(p.getLong().getUnits().doubleValue() > 0)
                     request.setLongUnits(p.getLong().getUnits().toString());
 
+                System.out.println("Closing Oanda position: " + instrument);
                 ctx.position.close(request);
             }
         }catch (Exception e) { System.out.println(e.getMessage()); e.printStackTrace(); }

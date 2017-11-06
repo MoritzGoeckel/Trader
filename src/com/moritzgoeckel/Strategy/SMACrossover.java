@@ -1,7 +1,6 @@
 package com.moritzgoeckel.Strategy;
 
 import com.moritzgoeckel.Data.Candle;
-import com.moritzgoeckel.Data.Position;
 import com.moritzgoeckel.Indicators.SMA;
 import com.moritzgoeckel.Market.Market;
 import com.moritzgoeckel.Data.PositionType;
@@ -31,7 +30,12 @@ public class SMACrossover implements Strategy {
 
         PositionType openPosition = market.isPositionOpen(candle.getInstrument());
 
-        if(candle.getLocalDateTime().getDayOfWeek() == DayOfWeek.FRIDAY && candle.getLocalDateTime().getHour() >= 9){
+        DayOfWeek weekDay = candle.getLocalDateTime().getDayOfWeek();
+
+        boolean dontOpenPositions = weekDay == DayOfWeek.FRIDAY || (weekDay == DayOfWeek.THURSDAY && candle.getLocalDateTime().getHour() >= 22);
+        boolean stopTrading = weekDay == DayOfWeek.FRIDAY && candle.getLocalDateTime().getHour() >= 15;
+
+        if(stopTrading){
             //Market is closing, get out
             if(openPosition != PositionType.None) {
                 market.closePosition(candle.getInstrument());
@@ -46,14 +50,16 @@ public class SMACrossover implements Strategy {
                     if (openPosition == PositionType.Sell)
                         market.closePosition(candle.getInstrument());
 
-                    market.openPosition(candle.getInstrument(), 1, PositionType.Buy);
+                    if(!dontOpenPositions)
+                        market.openPosition(candle.getInstrument(), 10, PositionType.Buy);
                 }
 
                 if (one < two && openPosition != PositionType.Sell) {
                     if (openPosition == PositionType.Buy)
                         market.closePosition(candle.getInstrument());
 
-                    market.openPosition(candle.getInstrument(), 1, PositionType.Sell);
+                    if(!dontOpenPositions)
+                        market.openPosition(candle.getInstrument(), 10, PositionType.Sell);
                 }
             }
         }
@@ -71,7 +77,7 @@ public class SMACrossover implements Strategy {
 
     @Override
     public StrategyDNA getOffspringDna() {
-        int exploration = 10;
+        int exploration = 20;
 
         StrategyDNA nDna = new StrategyDNA(this.getClass());
         nDna.put("sma1", (int)(Math.random() * exploration - exploration / 2 + dna.get("sma1")));
@@ -89,8 +95,8 @@ public class SMACrossover implements Strategy {
     @Override
     public StrategyDNA getRandomDna() {
         StrategyDNA nDna = new StrategyDNA(this.getClass());
-        nDna.put("sma1", (int)(Math.random() * 70d + 1d));
-        nDna.put("sma2", (int)(Math.random() * 70d + 1d));
+        nDna.put("sma1", (int)(Math.random() * 150d + 1d));
+        nDna.put("sma2", (int)(Math.random() * 150d + 1d));
 
         return nDna;
     }

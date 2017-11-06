@@ -14,6 +14,8 @@ public class Trader {
 
     public Trader(StrategyDNA dna, List<Candle> preparationCandles) throws IllegalAccessException, InstantiationException {
         strategy = dna.getStrategyLogic().newInstance();
+        strategy.setDna(dna);
+
         BacktestMarket backtestMarket = new BacktestMarket();
 
         for(Candle c : preparationCandles){

@@ -26,7 +26,7 @@ public class CandleDownloader {
     }
 
     public Candle getNewestCompleteCandle(InstrumentName instrumentName, CandlestickGranularity granularity) throws ExecuteException, RequestException {
-        List<Candle> candleList = downloadCandles(instrumentName, granularity, LocalDateTime.now().minusHours(8), LocalDateTime.now().plusHours(8));
+        List<Candle> candleList = downloadCandles(instrumentName, granularity, LocalDateTime.now().minusHours(8), LocalDateTime.now().plusHours(30));
         Candle[] allCandles = candleList.toArray(new Candle[candleList.size()]);
         for(int i = allCandles.length - 1; i > 0; i--){
             if(allCandles[i].getComplete())
