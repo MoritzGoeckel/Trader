@@ -2,11 +2,12 @@ package com.moritzgoeckel.Statistics;
 
 import com.moritzgoeckel.Data.Position;
 import com.moritzgoeckel.Data.PositionType;
+import javafx.util.Pair;
 
 import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.time.temporal.TemporalField;
+import java.time.temporal.WeekFields;
+import java.util.*;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 
@@ -16,6 +17,8 @@ public class PositionStatistics {
     private double profit = 0, median, sd = 0, semiSd = 0;
     private int positiveTrades = 0;
     private double medianDurationMinutes, durationMinutesSD = 0;
+    private Map<String, Double> weekProfits = new HashMap<>();
+    private double positiveWeeksRatio;
 
     public PositionStatistics(List<Position> positionList){
         this.positionList = positionList;
@@ -30,7 +33,24 @@ public class PositionStatistics {
 
             durations.add(p.getDurationSeconds() / 60d);
             durationTotal += p.getDurationSeconds() / 60d;
+
+            TemporalField woy = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear();
+            String weekId = p.timeIn.get(woy) + "_" + p.timeIn.getYear();
+
+            if(!weekProfits.containsKey(weekId))
+                weekProfits.put(weekId, 0d);
+
+            weekProfits.put(weekId, weekProfits.get(weekId) + p.getProfit());
         }
+
+        int positiveWeeks = 0;
+        for(String weekKey : weekProfits.keySet())
+            positiveWeeks += (weekProfits.get(weekKey) > 0 ? 1 : 0);
+
+        if(weekProfits.size() > 0)
+            positiveWeeksRatio = (double) positiveWeeks / (double) weekProfits.size();
+        else
+            positiveWeeksRatio = 0;
 
         medianDurationMinutes = (double)durationTotal / (double) durations.size();
 
@@ -138,7 +158,8 @@ public class PositionStatistics {
                 "SD:\t\t\t\t" + formatDouble(getSd()) + "\r\n" +
                 "Trades:\t\t\t" + getNumberTrades() + "\r\n" +
                 "avgDuration:\t" + formatDouble(getMedianDurationMinutes() / 60) + "h" + "\r\n" +
-                "durationSD:\t\t" + formatDouble(getDurationMinutesSD() / 60) + "h"
+                "durationSD:\t\t" + formatDouble(getDurationMinutesSD() / 60) + "h" + "\r\n" +
+                "pWeekRatio:\t\t" + formatDouble(getPositiveTradesRatio())
         );
     }
 
@@ -147,5 +168,9 @@ public class PositionStatistics {
         df.setMaximumFractionDigits(4);
 
         return df.format(d);
+    }
+
+    public Double getPositiveWeeksRatio() {
+        return positiveWeeksRatio;
     }
 }

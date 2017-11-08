@@ -28,6 +28,8 @@ public class SMACrossover implements Strategy {
         sma_1.pushValue(value);
         sma_2.pushValue(value);
 
+        int tradedUnits = (int)(value / 0.001);
+
         PositionType openPosition = market.isPositionOpen(candle.getInstrument());
 
         DayOfWeek weekDay = candle.getLocalDateTime().getDayOfWeek();
@@ -51,7 +53,7 @@ public class SMACrossover implements Strategy {
                         market.closePosition(candle.getInstrument());
 
                     if(!dontOpenPositions)
-                        market.openPosition(candle.getInstrument(), 10, PositionType.Buy);
+                        market.openPosition(candle.getInstrument(), tradedUnits, PositionType.Buy); //Todo: Price/0.0001 or Price/0.001
                 }
 
                 if (one < two && openPosition != PositionType.Sell) {
@@ -59,7 +61,7 @@ public class SMACrossover implements Strategy {
                         market.closePosition(candle.getInstrument());
 
                     if(!dontOpenPositions)
-                        market.openPosition(candle.getInstrument(), 10, PositionType.Sell);
+                        market.openPosition(candle.getInstrument(), tradedUnits, PositionType.Sell);
                 }
             }
         }
