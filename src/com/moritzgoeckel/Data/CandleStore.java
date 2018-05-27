@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 
+@Deprecated
 public class CandleStore {
 
     private AmazonDynamoDB client;

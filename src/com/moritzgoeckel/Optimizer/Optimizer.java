@@ -51,7 +51,11 @@ public class Optimizer {
         return addOffspringToQueue(untilLeaderboardIndex, 1);
     }
 
-    public Optimizer addOffspringToQueue(int untilLeaderboardIndex, int amount) throws IllegalAccessException, InstantiationException {
+    public Optimizer addOffspringToQueue(int untilLeaderboardIndex, int amount) throws IllegalAccessException, InstantiationException{
+        return addOffspringToQueue(untilLeaderboardIndex, amount, 1d);
+    }
+
+    public Optimizer addOffspringToQueue(int untilLeaderboardIndex, int amount, double exploration) throws IllegalAccessException, InstantiationException {
         Iterator<StrategyDNA> iterator = leaderboard.values().iterator();
 
         for(int i = 0; i < untilLeaderboardIndex && iterator.hasNext(); i++) {
@@ -60,7 +64,7 @@ public class Optimizer {
             for(int done = 0; done < amount; done++) {
                 Strategy s = parentDna.getStrategyLogic().newInstance();
                 s.setDna(parentDna);
-                StrategyDNA childDna = s.getOffspringDna();
+                StrategyDNA childDna = s.getOffspringDna(exploration);
 
                 if (!doneDna.contains(childDna.getHash())) {
                     queue.add(childDna);

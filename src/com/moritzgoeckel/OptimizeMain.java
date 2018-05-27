@@ -48,23 +48,25 @@ public class OptimizeMain {
         System.out.println("DONE");
     }
 
-    public static Pair<StrategyDNA, PositionStatistics> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException {
-        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getPositiveWeeksRatio() * stats.getSharpe() );
+    private static Pair<StrategyDNA, PositionStatistics> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException {
+        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getSharpe() );
         optimizer.addRandomToQueue(SMACrossover.class, 100);
         optimizer.processQueue();
 
         for(int i = 0; i < 100; i++) {
-            optimizer.addOffspringToQueue(3, 10);
-            optimizer.addOffspringToQueue(5, 10);
-            optimizer.addOffspringToQueue(10, 50);
-            optimizer.addOffspringToQueue(20, 5);
-            optimizer.addOffspringToQueue(50, 5);
+            double exploration = ((100 - i) + 1) / 100d;
+
+            optimizer.addOffspringToQueue(3, 10, exploration);
+            optimizer.addOffspringToQueue(5, 10, exploration);
+            optimizer.addOffspringToQueue(10, 50, exploration);
+            optimizer.addOffspringToQueue(20, 5, exploration);
+            optimizer.addOffspringToQueue(50, 5, exploration);
 
             int fillSeeds = 50 - optimizer.getQueueLength();
             if(fillSeeds > 0)
                 optimizer.addRandomToQueue(SMACrossover.class, fillSeeds);
 
-            System.out.print("\rRound: " + i);
+            System.out.print("\rRound: " + i + "/100" + " expl=" + exploration);
 
             optimizer.processQueue();
         }
@@ -77,7 +79,8 @@ public class OptimizeMain {
         System.out.println(best.get(0).getHash());
 
         System.out.println("# OPTIMIZATION BACKTEST #");
-        Backtester.backtest(optimizingCandles, best.get(0)).printSummary();
+        PositionStatistics optStats = Backtester.backtest(optimizingCandles, best.get(0));
+        optStats.printSummary();
 
         System.out.println("# VALIDATION BACKTEST #");
         PositionStatistics stats = Backtester.backtest(validationCandles, best.get(0));

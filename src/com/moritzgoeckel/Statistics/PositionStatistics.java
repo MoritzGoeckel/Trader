@@ -5,6 +5,8 @@ import com.moritzgoeckel.Data.PositionType;
 import javafx.util.Pair;
 
 import java.text.DecimalFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.*;
@@ -159,7 +161,8 @@ public class PositionStatistics {
                 "Trades:\t\t\t" + getNumberTrades() + "\r\n" +
                 "avgDuration:\t" + formatDouble(getMedianDurationMinutes() / 60) + "h" + "\r\n" +
                 "durationSD:\t\t" + formatDouble(getDurationMinutesSD() / 60) + "h" + "\r\n" +
-                "pWeekRatio:\t\t" + formatDouble(getPositiveTradesRatio())
+                "pWeekRatio:\t\t" + formatDouble(getPositiveTradesRatio()) + "\r\n" +
+                "duringWeekend:\t" + hasPositionDuringWeekend()
         );
     }
 
@@ -172,5 +175,19 @@ public class PositionStatistics {
 
     public Double getPositiveWeeksRatio() {
         return positiveWeeksRatio;
+    }
+
+    public boolean hasPositionDuringWeekend(){
+        for(Position p : getPositionList()){
+            LocalDateTime time = p.timeIn;
+            while (time.isBefore(p.timeOut)){
+                if(time.getDayOfWeek() == DayOfWeek.SUNDAY || time.getDayOfWeek() == DayOfWeek.SATURDAY)
+                    return true;
+
+                time = time.plusDays(1);
+            }
+        }
+
+        return  false;
     }
 }

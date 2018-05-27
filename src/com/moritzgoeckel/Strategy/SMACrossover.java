@@ -34,8 +34,10 @@ public class SMACrossover implements Strategy {
 
         DayOfWeek weekDay = candle.getLocalDateTime().getDayOfWeek();
 
+        //Todo: Maybe somewhere else
+        boolean isWeekend = weekDay == DayOfWeek.SATURDAY || weekDay == DayOfWeek.SUNDAY;
         boolean dontOpenPositions = weekDay == DayOfWeek.FRIDAY || (weekDay == DayOfWeek.THURSDAY && candle.getLocalDateTime().getHour() >= 22);
-        boolean stopTrading = weekDay == DayOfWeek.FRIDAY && candle.getLocalDateTime().getHour() >= 15;
+        boolean stopTrading = (weekDay == DayOfWeek.FRIDAY && candle.getLocalDateTime().getHour() >= 15) || isWeekend;
 
         if(stopTrading){
             //Market is closing, get out
@@ -68,7 +70,7 @@ public class SMACrossover implements Strategy {
     }
 
     @Override
-    public int getPreperationTime() {
+    public int getPreparationTime() {
         return Math.max((int)dna.get("sma1"), (int)dna.get("sma2"));
     }
 
@@ -78,12 +80,12 @@ public class SMACrossover implements Strategy {
     }
 
     @Override
-    public StrategyDNA getOffspringDna() {
-        int exploration = 20;
+    public StrategyDNA getOffspringDna(double exploration) {
+        double actualExploration = 100d * exploration;
 
         StrategyDNA nDna = new StrategyDNA(this.getClass());
-        nDna.put("sma1", (int)(Math.random() * exploration - exploration / 2 + dna.get("sma1")));
-        nDna.put("sma2", (int)(Math.random() * exploration - exploration / 2 + dna.get("sma1")));
+        nDna.put("sma1", (int)((Math.random() * actualExploration - actualExploration / 2d) + dna.get("sma1")));
+        nDna.put("sma2", (int)((Math.random() * actualExploration - actualExploration / 2d) + dna.get("sma2")));
 
         if(nDna.get("sma1") <= 0)
             nDna.put("sma1", 1);
