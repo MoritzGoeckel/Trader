@@ -6,13 +6,16 @@ import com.moritzgoeckel.Strategy.Strategy;
 import com.moritzgoeckel.Strategy.StrategyDNA;
 
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 public class Optimizer {
     private List<Candle> candleList;
 
     private List<StrategyDNA> queue = new LinkedList<>();
-    private SortedMap<Double, StrategyDNA> leaderboard = new TreeMap<>(Collections.reverseOrder());
+    private final SortedMap<Double, StrategyDNA> leaderboard = new TreeMap<>(Collections.reverseOrder());
     private Function<PositionStatistics, Double> scoringFunction;
     private Set<String> doneDna = new HashSet<>();
 
@@ -21,13 +24,23 @@ public class Optimizer {
         this.scoringFunction = scoringFunction;
     }
 
-    public void processQueue() throws IllegalAccessException, InstantiationException {
+    public void processQueue() throws InterruptedException {
+        List<Callable<Void>> tasks = new ArrayList<>();
+
         for(StrategyDNA dna : queue){
-            PositionStatistics stats = Backtester.backtest(candleList, dna);
-            double score = scoringFunction.apply(stats);
-            leaderboard.put(score, dna);
+            tasks.add(() -> {
+                PositionStatistics stats = Backtester.backtest(candleList, dna);
+                double score = scoringFunction.apply(stats);
+                synchronized (leaderboard) {
+                    leaderboard.put(score, dna);
+                }
+                return null;
+            });
         }
         queue.clear();
+
+        ExecutorService threadPool = Executors.newWorkStealingPool();
+        threadPool.invokeAll(tasks);
     }
 
     public Optimizer addRandomToQueue(Class <? extends Strategy> strategyType) throws IllegalAccessException, InstantiationException {

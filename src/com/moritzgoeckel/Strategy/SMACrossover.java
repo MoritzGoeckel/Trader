@@ -23,7 +23,6 @@ public class SMACrossover implements Strategy {
 
     @Override
     public void candleCompleted(Candle candle, Market market) {
-
         double value = candle.getMid().getC().doubleValue();
         sma_1.pushValue(value);
         sma_2.pushValue(value);
@@ -34,7 +33,7 @@ public class SMACrossover implements Strategy {
 
         DayOfWeek weekDay = candle.getLocalDateTime().getDayOfWeek();
 
-        //Todo: Maybe somewhere else
+        //Todo: Maybe somewhere else?
         boolean isWeekend = weekDay == DayOfWeek.SATURDAY || weekDay == DayOfWeek.SUNDAY;
         boolean dontOpenPositions = weekDay == DayOfWeek.FRIDAY || (weekDay == DayOfWeek.THURSDAY && candle.getLocalDateTime().getHour() >= 22);
         boolean stopTrading = (weekDay == DayOfWeek.FRIDAY && candle.getLocalDateTime().getHour() >= 15) || isWeekend;
@@ -81,7 +80,7 @@ public class SMACrossover implements Strategy {
 
     @Override
     public StrategyDNA getOffspringDna(double exploration) {
-        double actualExploration = 100d * exploration;
+        double actualExploration = 10d * exploration;
 
         StrategyDNA nDna = new StrategyDNA(this.getClass());
         nDna.put("sma1", (int)((Math.random() * actualExploration - actualExploration / 2d) + dna.get("sma1")));

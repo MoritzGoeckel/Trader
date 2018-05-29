@@ -21,6 +21,7 @@ public class PositionStatistics {
     private double medianDurationMinutes, durationMinutesSD = 0;
     private Map<String, Double> weekProfits = new HashMap<>();
     private double positiveWeeksRatio;
+    private double weekSd = 0;
 
     public PositionStatistics(List<Position> positionList){
         this.positionList = positionList;
@@ -45,9 +46,14 @@ public class PositionStatistics {
             weekProfits.put(weekId, weekProfits.get(weekId) + p.getProfit());
         }
 
+        weekSd = 0;
+        double weekAvg = getProfit() / weekProfits.size();
         int positiveWeeks = 0;
-        for(String weekKey : weekProfits.keySet())
+        for(String weekKey : weekProfits.keySet()) {
             positiveWeeks += (weekProfits.get(weekKey) > 0 ? 1 : 0);
+            weekSd += Math.pow(weekProfits.get(weekKey) - weekAvg, 2); //Todo: Should that be average or mean?
+        }
+        weekSd = Math.sqrt(weekSd / (double) weekProfits.size());
 
         if(weekProfits.size() > 0)
             positiveWeeksRatio = (double) positiveWeeks / (double) weekProfits.size();
@@ -64,7 +70,7 @@ public class PositionStatistics {
         else
             median = 0;
 
-        double mean = getMean();
+        double mean = getMean(); //Todo: Should that be average or mean?
         for(double p : profits) {
             sd += Math.pow(p - mean, 2);
 
@@ -99,11 +105,29 @@ public class PositionStatistics {
         return profit / (double) getNumberTrades();
     }
 
+    public double getWeeksSD(){
+        return weekSd;
+    }
+
+    public double getWeeksSharpe(){
+        if(getWeeksSD() == 0 || getProfit() == 0)
+            return 0;
+
+        return getProfit() / getWeeksSD();
+    }
+
     public double getSharpe(){
         if(getSd() == 0 || getProfit() == 0)
             return 0;
 
         return getProfit() / getSd();
+    }
+
+    public double getConservativeSharpe(){
+        if(getSd() == 0 || getProfit() == 0)
+            return 0;
+
+        return getProfit() / Math.pow(getSd(), 2);
     }
 
     public double getSemiSharpe(){
@@ -149,6 +173,13 @@ public class PositionStatistics {
         return durationMinutesSD;
     }
 
+    public void printProfitsPerWeek(){
+        System.out.println("Week:\t\tProfit:");
+        for(Map.Entry<String, Double> entry : weekProfits.entrySet()){
+            System.out.println(entry.getKey() + "\t\t" + entry.getValue());
+        }
+    }
+
     public void printSummary(){
         System.out.println(
                 "Mean:\t\t\t" + formatDouble(getMean()) + "\r\n" +
@@ -157,11 +188,14 @@ public class PositionStatistics {
                 "Profit:\t\t\t" + formatDouble(getProfit()) + "\r\n" +
                 "Sharpe:\t\t\t" + formatDouble(getSharpe()) + "\r\n" +
                 "SemiSharpe:\t\t" + formatDouble(getSemiSharpe()) + "\r\n" +
+                "ConsSharpe:\t\t" + formatDouble(getConservativeSharpe()) + "\r\n" +
                 "SD:\t\t\t\t" + formatDouble(getSd()) + "\r\n" +
                 "Trades:\t\t\t" + getNumberTrades() + "\r\n" +
                 "avgDuration:\t" + formatDouble(getMedianDurationMinutes() / 60) + "h" + "\r\n" +
                 "durationSD:\t\t" + formatDouble(getDurationMinutesSD() / 60) + "h" + "\r\n" +
-                "pWeekRatio:\t\t" + formatDouble(getPositiveTradesRatio()) + "\r\n" +
+                "pWeekRatio:\t\t" + formatDouble(getPositiveWeeksRatio()) + "\r\n" +
+                "weeksSd:\t\t" + formatDouble(getWeeksSD()) + "\r\n" +
+                "weeksSharpe:\t" + formatDouble(getWeeksSharpe()) + "\r\n" +
                 "duringWeekend:\t" + hasPositionDuringWeekend()
         );
     }

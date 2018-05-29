@@ -29,13 +29,13 @@ public class OptimizeMain {
         for(Instrument i : instruments){
             if(i.getName().toString().contains("USD") || i.getName().toString().contains("EUR")) {
                 System.out.println("############## " + i.getName() + " ##############");
-                List<Candle> optimizationCandles = downloader.downloadCandles(i.getName(), CandlestickGranularity.M30, LocalDateTime.now().minusDays(365), LocalDateTime.now().minusDays(65));
+                List<Candle> optimizationCandles = downloader.downloadCandles(i.getName(), CandlestickGranularity.M30, LocalDateTime.now().minusDays(660), LocalDateTime.now().minusDays(60));
                 List<Candle> validationCandles = downloader.downloadCandles(i.getName(), CandlestickGranularity.M30, LocalDateTime.now().minusDays(60), LocalDateTime.now());
 
                 Pair<StrategyDNA, PositionStatistics> pair = optimize(optimizationCandles, validationCandles);
 
                 doneValidations++;
-                if (pair.getValue().getSharpe() > 3) {
+                if (pair.getValue().getProfit() > 0d) {
                     System.out.println(pair.getKey().getHash());
                     goodValidations++;
                 }
@@ -48,8 +48,8 @@ public class OptimizeMain {
         System.out.println("DONE");
     }
 
-    private static Pair<StrategyDNA, PositionStatistics> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException {
-        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getSharpe() );
+    private static Pair<StrategyDNA, PositionStatistics> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException, InterruptedException {
+        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getWeeksSharpe());
         optimizer.addRandomToQueue(SMACrossover.class, 100);
         optimizer.processQueue();
 
@@ -85,6 +85,7 @@ public class OptimizeMain {
         System.out.println("# VALIDATION BACKTEST #");
         PositionStatistics stats = Backtester.backtest(validationCandles, best.get(0));
         stats.printSummary();
+        stats.printProfitsPerWeek();
 
         return new Pair<>(best.get(0), stats);
     }
