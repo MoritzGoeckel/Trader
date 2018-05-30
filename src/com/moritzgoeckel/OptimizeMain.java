@@ -8,12 +8,12 @@ import com.moritzgoeckel.Statistics.PositionStatistics;
 import com.moritzgoeckel.Strategy.SMACrossover;
 import com.moritzgoeckel.Strategy.StrategyDNA;
 import com.oanda.v20.Context;
-import com.oanda.v20.account.AccountID;
 import com.oanda.v20.instrument.CandlestickGranularity;
-import com.oanda.v20.primitives.Instrument;
+import com.oanda.v20.primitives.InstrumentName;
 import javafx.util.Pair;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 public class OptimizeMain {
@@ -22,35 +22,32 @@ public class OptimizeMain {
         Context ctx = new Context("https://api-fxpractice.oanda.com", "3a9a4f4ce5b4c5838dbfc24a7706151b-dd15e44936e5c3a48fbae5277d024e07");
         CandleDownloader downloader = new CandleDownloader(ctx);
 
-        List<Instrument> instruments = ctx.account.instruments(new AccountID("101-004-2357917-002")).getInstruments();
+        String insts = "SUGAR_USD|WHEAT_USD|XPD_USD|DE10YB_EUR|NL25_EUR|DE30_EUR|NAS100_USD";
+        List<String> instruments = Arrays.asList(insts.split("\\|"));
 
         int goodValidations = 0, doneValidations = 0;
 
-        for(Instrument i : instruments){
-            if(i.getName().toString().contains("USD") || i.getName().toString().contains("EUR")) {
-                System.out.println("############## " + i.getName() + " ##############");
-                List<Candle> optimizationCandles = downloader.downloadCandles(i.getName(), CandlestickGranularity.M30, LocalDateTime.now().minusDays(660), LocalDateTime.now().minusDays(60));
-                List<Candle> validationCandles = downloader.downloadCandles(i.getName(), CandlestickGranularity.M30, LocalDateTime.now().minusDays(60), LocalDateTime.now());
+        for(String instrument : instruments){
+            System.out.println("############## " + instrument + " ##############");
+            List<Candle> optimizationCandles = downloader.downloadCandles(new InstrumentName(instrument), CandlestickGranularity.M30, LocalDateTime.now().minusDays(200), LocalDateTime.now().minusDays(60));
+            List<Candle> validationCandles = downloader.downloadCandles(new InstrumentName(instrument), CandlestickGranularity.M30, LocalDateTime.now().minusDays(60), LocalDateTime.now());
 
-                Pair<StrategyDNA, PositionStatistics> pair = optimize(optimizationCandles, validationCandles);
+            Pair<StrategyDNA, PositionStatistics> pair = optimize(optimizationCandles, validationCandles);
 
-                doneValidations++;
-                if (pair.getValue().getProfit() > 0d) {
-                    System.out.println(pair.getKey().getHash());
-                    goodValidations++;
-                }
-                System.out.println("Good validations: " + ((double) goodValidations / (double) doneValidations));
+            doneValidations++;
+            if (pair.getValue().getProfit() > 0d) {
+                System.out.println(pair.getKey().getHash());
+                goodValidations++;
             }
+            System.out.println("Good validations: " + ((double) goodValidations / (double) doneValidations));
         }
-
-        //Todo: Positive Weeks statistics
 
         System.out.println("DONE");
     }
 
     private static Pair<StrategyDNA, PositionStatistics> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException, InterruptedException {
-        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getWeeksSharpe());
-        optimizer.addRandomToQueue(SMACrossover.class, 100);
+        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getSharpe());
+        optimizer.addRandomToQueue(SMACrossover.class, 100); //Todo: Other strategy logic
         optimizer.processQueue();
 
         for(int i = 0; i < 100; i++) {
@@ -61,12 +58,13 @@ public class OptimizeMain {
             optimizer.addOffspringToQueue(10, 50, exploration);
             optimizer.addOffspringToQueue(20, 5, exploration);
             optimizer.addOffspringToQueue(50, 5, exploration);
+            optimizer.addOffspringToQueue(200, 1, exploration);
 
             int fillSeeds = 50 - optimizer.getQueueLength();
             if(fillSeeds > 0)
                 optimizer.addRandomToQueue(SMACrossover.class, fillSeeds);
 
-            System.out.print("\rRound: " + i + "/100" + " expl=" + exploration);
+            System.out.print("\rRound: " + i + "/100");
 
             optimizer.processQueue();
         }

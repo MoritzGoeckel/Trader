@@ -113,7 +113,7 @@ public class PositionStatistics {
         if(getWeeksSD() == 0 || getProfit() == 0)
             return 0;
 
-        return getProfit() / getWeeksSD();
+        return getSharpe() / getWeeksSD();
     }
 
     public double getSharpe(){
