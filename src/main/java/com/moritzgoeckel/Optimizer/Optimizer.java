@@ -32,7 +32,8 @@ public class Optimizer {
                 PositionStatistics stats = Backtester.backtest(candleList, dna);
                 double score = scoringFunction.apply(stats);
                 synchronized (leaderboard) {
-                    leaderboard.put(score, dna);
+                    if(!leaderboard.containsKey(score)) //Todo: Really. Maybe multimap?
+                        leaderboard.put(score, dna);
                 }
                 return null;
             });
@@ -89,9 +90,9 @@ public class Optimizer {
         return this;
     }
 
-    public List<StrategyDNA> getLeaderboard(int amount){
-        List<StrategyDNA> output = new LinkedList<>();
-        Iterator<StrategyDNA> iterator = leaderboard.values().iterator();
+    public List<Map.Entry<Double, StrategyDNA>> getLeaderboard(int amount){
+        List<Map.Entry<Double, StrategyDNA>> output = new LinkedList<>();
+        Iterator<Map.Entry<Double, StrategyDNA>> iterator = leaderboard.entrySet().iterator();
 
         for(int i = 0; i < amount && iterator.hasNext(); i++)
             output.add(iterator.next());

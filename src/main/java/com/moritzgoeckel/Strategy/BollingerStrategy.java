@@ -13,20 +13,23 @@ import java.time.DayOfWeek;
 public class BollingerStrategy implements Strategy {
 
     private StrategyDNA dna = null;
-    private BollingerBands bands;
+    private BollingerBands openingBands, closingBands;
     private boolean reversed;
 
     @Override
     public void setDna(StrategyDNA dna) {
         this.dna = dna;
-        bands = new BollingerBands((int)dna.get("sma"), (int)dna.get("factor"));
+        openingBands = new BollingerBands((int)dna.get("sma"), (int)dna.get("factorOpening"));
+        closingBands = new BollingerBands((int)dna.get("sma"), (int)dna.get("factorClosing"));
+
         reversed = dna.get("reversed") < 0.5;
     }
 
     @Override
     public void candleCompleted(Candle candle, Market market) {
         double value = candle.getMid().getC().doubleValue();
-        bands.pushValue(value);
+        openingBands.pushValue(value);
+        closingBands.pushValue(value);
 
         int tradedUnits = (int)(value / 0.001);
 
@@ -46,29 +49,36 @@ public class BollingerStrategy implements Strategy {
             }
         }
         else {
-            if (bands.isReady()) {
-                int bandsValue = (int)bands.getIndicatorValue();
+            if (openingBands.isReady() && closingBands.isReady()) {
+                int openingValue = (int)openingBands.getIndicatorValue();
+                int closingValue = (int)closingBands.getIndicatorValue();
+
                 if(reversed){
-                    if(BollingerBands.BollingerState.Higher.ordinal() == bandsValue)
-                        bandsValue = BollingerBands.BollingerState.Lower.ordinal();
-                    else if(BollingerBands.BollingerState.Lower.ordinal() == bandsValue)
-                        bandsValue = BollingerBands.BollingerState.Higher.ordinal();
+                    if(BollingerBands.BollingerState.Higher.ordinal() == openingValue)
+                        openingValue = BollingerBands.BollingerState.Lower.ordinal();
+                    else if(BollingerBands.BollingerState.Lower.ordinal() == openingValue)
+                        openingValue = BollingerBands.BollingerState.Higher.ordinal();
                 }
 
-                if (bandsValue == BollingerBands.BollingerState.Lower.ordinal() && openPosition != PositionType.Buy) {
-                    if (openPosition == PositionType.Sell)
-                        market.closePosition(candle.getInstrument());
+                if(closingValue != BollingerBands.BollingerState.Inside.ordinal()) {
+                    if (openingValue == BollingerBands.BollingerState.Lower.ordinal() && openPosition != PositionType.Buy) {
+                        if (openPosition == PositionType.Sell)
+                            market.closePosition(candle.getInstrument());
 
-                    if(!dontOpenPositions)
-                        market.openPosition(candle.getInstrument(), tradedUnits, PositionType.Buy); //Todo: Price/0.0001 or Price/0.001
+                        if (!dontOpenPositions)
+                            market.openPosition(candle.getInstrument(), tradedUnits, PositionType.Buy); //Todo: Price/0.0001 or Price/0.001
+                    }
+
+                    if (openingValue == BollingerBands.BollingerState.Higher.ordinal() && openPosition != PositionType.Sell) {
+                        if (openPosition == PositionType.Buy)
+                            market.closePosition(candle.getInstrument());
+
+                        if (!dontOpenPositions)
+                            market.openPosition(candle.getInstrument(), tradedUnits, PositionType.Sell);
+                    }
                 }
-
-                if (bandsValue == BollingerBands.BollingerState.Higher.ordinal() && openPosition != PositionType.Sell) {
-                    if (openPosition == PositionType.Buy)
-                        market.closePosition(candle.getInstrument());
-
-                    if(!dontOpenPositions)
-                        market.openPosition(candle.getInstrument(), tradedUnits, PositionType.Sell);
+                else if(openPosition != PositionType.None){ //Inside closing area
+                    market.closePosition(candle.getInstrument());
                 }
             }
         }
@@ -89,16 +99,13 @@ public class BollingerStrategy implements Strategy {
         double actualExploration = 10d * exploration;
 
         StrategyDNA nDna = new StrategyDNA(this.getClass());
-        nDna.put("sma", (int)((Math.random() * actualExploration - actualExploration / 2d) + dna.get("sma")));
-
-        if(nDna.get("sma") <= 0)
-            nDna.put("sma", 1);
+        nDna.put("sma", (int)(Math.abs((Math.random() * actualExploration - actualExploration / 2d) + dna.get("sma"))));
 
         actualExploration = 1d * exploration;
-        nDna.put("factor", Formatting.round((Math.random() * actualExploration - actualExploration / 2d) + dna.get("factor"), 1));
+        nDna.put("factorOpening", Math.abs(Formatting.round((Math.random() * actualExploration - actualExploration / 2d) + dna.get("factorOpening"), 1)));
+        nDna.put("factorClosing", Math.abs(Formatting.round((Math.random() * actualExploration - actualExploration / 2d) + dna.get("factorClosing"), 1)));
 
-        if(nDna.get("factor") <= 0)
-            nDna.put("factor", 1);
+        //Todo: factorClosing has to be < factorOpening??
 
         nDna.put("reversed", Math.random() > 0.5 ? 1 : 0);
 
@@ -109,7 +116,9 @@ public class BollingerStrategy implements Strategy {
     public StrategyDNA getRandomDna() {
         StrategyDNA nDna = new StrategyDNA(this.getClass());
         nDna.put("sma", (int)(Math.random() * 100d + 1d));
-        nDna.put("factor", Formatting.round(Math.random() * 5 + 1d, 2));
+        nDna.put("factorOpening", Formatting.round(Math.random() * 5, 1));
+        nDna.put("factorClosing", Formatting.round(Math.random() * nDna.get("factorOpening") + 0.1d, 1));
+
         nDna.put("reversed", Math.random() > 0.5 ? 1 : 0);
 
         return nDna;

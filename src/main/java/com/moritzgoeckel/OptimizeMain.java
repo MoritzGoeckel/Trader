@@ -18,6 +18,7 @@ import javafx.util.Pair;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class OptimizeMain {
 
@@ -48,16 +49,22 @@ public class OptimizeMain {
     }
 
     private static Pair<StrategyDNA, PositionStatistics> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException, InterruptedException {
-        Optimizer optimizer = new Optimizer(optimizingCandles, stats -> stats.getSharpe() * (stats.getNumberTrades() > 30 ? 1 : 0));
+        Optimizer optimizer = new Optimizer(optimizingCandles,
+                stats -> stats.getSharpe() * (stats.getNumberTrades() > 30 ? 1 : 0)
+        );
 
         //Todo: Somehow only SMA CROSSOVERS win
-        optimizer.addRandomToQueue(SMACrossover.class, 100);
+        //optimizer.addRandomToQueue(SMACrossover.class, 100);
         optimizer.addRandomToQueue(BollingerStrategy.class, 100); //Todo: Other strategy logic
 
         optimizer.processQueue();
 
-        for(int i = 0; i < 100; i++) {
-            double exploration = ((100 - i) + 1) / 100d;
+        double lastScore = 0;
+        int roundsTodo = 1;
+        for(int i = 0; i <= roundsTodo; i++) {
+            double exploration = (5d - i) / 5d;
+            if(exploration <= 0)
+                exploration = 0.1d;
 
             optimizer.addOffspringToQueue(3, 10, exploration);
             optimizer.addOffspringToQueue(5, 10, exploration);
@@ -66,28 +73,35 @@ public class OptimizeMain {
             optimizer.addOffspringToQueue(50, 5, exploration);
             optimizer.addOffspringToQueue(200, 1, exploration);
 
-            int fillSeeds = 50 - optimizer.getQueueLength();
+            int fillSeeds = 500 - optimizer.getQueueLength();
             if(fillSeeds > 0) {
-                optimizer.addRandomToQueue(SMACrossover.class, fillSeeds / 2);
+                //optimizer.addRandomToQueue(SMACrossover.class, fillSeeds / 2);
                 optimizer.addRandomToQueue(BollingerStrategy.class, fillSeeds / 2);
             }
 
-            System.out.print("\rRound: " + i + "/100");
-
             optimizer.processQueue();
+
+            Map.Entry<Double, StrategyDNA> best = optimizer.getLeaderboard(1).get(0);
+            double score = best.getKey();
+            if(score != lastScore) {
+                lastScore = score;
+                roundsTodo += 2;
+            }
+
+            System.out.print("\rRound: " + i + "/" + roundsTodo + " expl=" + exploration + " \t" + score + "\t\t" + best.getValue().getHash());
         }
 
         System.out.println("\nProcessed: " + optimizer.getDoneStrategiesCount());
 
-        List<StrategyDNA> best = optimizer.getLeaderboard(10);
+        List<Map.Entry<Double, StrategyDNA>> best = optimizer.getLeaderboard(10);
 
-        PositionStatistics optStats = Backtester.backtest(optimizingCandles, best.get(0));
-        PositionStatistics stats = Backtester.backtest(validationCandles, best.get(0));
+        PositionStatistics optStats = Backtester.backtest(optimizingCandles, best.get(0).getValue());
+        PositionStatistics stats = Backtester.backtest(validationCandles, best.get(0).getValue());
 
         //Verbose
         if(false) {
             System.out.println("# WINNER #");
-            System.out.println(best.get(0).getHash());
+            System.out.println(best.get(0).getValue().getHash());
 
             System.out.println("# OPTIMIZATION BACKTEST #");
             optStats.printSummary();
@@ -97,9 +111,9 @@ public class OptimizeMain {
             stats.printProfitsPerWeek();
         }
         else {
-            System.out.println(Formatting.round(stats.getSharpe(), 2) + "\t\t" + best.get(0).getHash());
+            System.out.println(Formatting.round(stats.getSharpe(), 2) + "\t\t" + best.get(0).getValue().getHash());
         }
 
-        return new Pair<>(best.get(0), stats);
+        return new Pair<>(best.get(0).getValue(), stats);
     }
 }
