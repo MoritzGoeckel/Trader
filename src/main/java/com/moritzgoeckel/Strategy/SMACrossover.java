@@ -1,6 +1,8 @@
 package com.moritzgoeckel.Strategy;
 
+import com.moritzgoeckel.Charting.ChartAdapter;
 import com.moritzgoeckel.Data.Candle;
+import com.moritzgoeckel.Data.StrategyData;
 import com.moritzgoeckel.Indicators.SMA;
 import com.moritzgoeckel.Market.Market;
 import com.moritzgoeckel.Data.PositionType;
@@ -13,6 +15,8 @@ public class SMACrossover implements Strategy {
     private SMA sma_2 = null;
 
     private StrategyDNA dna = null;
+
+    private StrategyData data = new StrategyData(new String[]{"sma1", "sma2", "weekend"}, new int[]{ChartAdapter.AxisGroup.Price.ordinal(), ChartAdapter.AxisGroup.Price.ordinal(), ChartAdapter.AxisGroup.ZeroOneFilled.ordinal()});
 
     @Override
     public void setDna(StrategyDNA dna) {
@@ -38,6 +42,15 @@ public class SMACrossover implements Strategy {
         boolean dontOpenPositions = weekDay == DayOfWeek.FRIDAY || (weekDay == DayOfWeek.THURSDAY && candle.getLocalDateTime().getHour() >= 22);
         boolean stopTrading = (weekDay == DayOfWeek.FRIDAY && candle.getLocalDateTime().getHour() >= 15) || isWeekend;
 
+        double one = 0;
+        double two = 0;
+
+        if(sma_1.isReady())
+            one = sma_1.getIndicatorValue();
+
+        if(sma_2.isReady())
+            two = sma_2.getIndicatorValue();
+
         if(stopTrading){
             //Market is closing, get out
             if(openPosition != PositionType.None) {
@@ -46,9 +59,6 @@ public class SMACrossover implements Strategy {
         }
         else {
             if (sma_1.isReady() && sma_2.isReady()) {
-                double one = sma_1.getIndicatorValue();
-                double two = sma_2.getIndicatorValue();
-
                 if (one > two && openPosition != PositionType.Buy) {
                     if (openPosition == PositionType.Sell)
                         market.closePosition(candle.getInstrument());
@@ -66,6 +76,8 @@ public class SMACrossover implements Strategy {
                 }
             }
         }
+
+        data.addData(new String[]{"sma1", "sma2", "weekend"}, new double[]{one, two, stopTrading ? 1 : 0});
     }
 
     @Override
@@ -93,6 +105,11 @@ public class SMACrossover implements Strategy {
             nDna.put("sma2", 1);
 
         return nDna;
+    }
+
+    @Override
+    public StrategyData getStrategyData() {
+        return data;
     }
 
     @Override

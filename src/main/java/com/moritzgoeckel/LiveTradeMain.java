@@ -5,8 +5,6 @@ import com.moritzgoeckel.Data.CandleDownloader;
 import com.moritzgoeckel.Live.Trader;
 import com.moritzgoeckel.Market.Market;
 import com.moritzgoeckel.Market.OandaMarket;
-import com.moritzgoeckel.Optimizer.Backtester;
-import com.moritzgoeckel.Optimizer.Optimizer;
 import com.moritzgoeckel.Strategy.SMACrossover;
 import com.moritzgoeckel.Strategy.StrategyDNA;
 import com.oanda.v20.Context;

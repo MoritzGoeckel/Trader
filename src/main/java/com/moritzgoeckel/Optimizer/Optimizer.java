@@ -29,8 +29,8 @@ public class Optimizer {
 
         for(StrategyDNA dna : queue){
             tasks.add(() -> {
-                PositionStatistics stats = Backtester.backtest(candleList, dna);
-                double score = scoringFunction.apply(stats);
+                Backtest backtest = new Backtest(candleList, dna);
+                double score = scoringFunction.apply(backtest.getStatistics());
                 synchronized (leaderboard) {
                     if(!leaderboard.containsKey(score)) //Todo: Really. Maybe multimap?
                         leaderboard.put(score, dna);

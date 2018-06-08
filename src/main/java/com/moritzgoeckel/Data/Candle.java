@@ -5,6 +5,7 @@ import com.oanda.v20.instrument.CandlestickData;
 import com.oanda.v20.primitives.DateTime;
 
 import java.time.LocalDateTime;
+import java.util.stream.IntStream;
 
 public class Candle extends Candlestick {
 
@@ -72,5 +73,16 @@ public class Candle extends Candlestick {
 
     public String getGranularity() {
         return granularity;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Candle other = (Candle) obj;
+        return other.getLocalDateTime().equals(this.getLocalDateTime())
+                && other.getMid().equals(this.getMid())
+                && other.getAsk().equals(this.getAsk())
+                && other.getBid().equals(this.getBid())
+                && other.getGranularity().equals(this.getGranularity())
+                && other.getInstrument().equals(this.getInstrument());
     }
 }

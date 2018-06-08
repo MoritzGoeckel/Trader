@@ -1,6 +1,7 @@
 package com.moritzgoeckel.Strategy;
 
 import com.moritzgoeckel.Data.Candle;
+import com.moritzgoeckel.Data.StrategyData;
 import com.moritzgoeckel.Market.Market;
 
 public interface Strategy {
@@ -9,10 +10,9 @@ public interface Strategy {
     int getPreparationTime();
     StrategyDNA getDna();
     StrategyDNA getOffspringDna(double exploration);
-
     default StrategyDNA getOffspringDna(){
         return getOffspringDna(1d);
     }
-
+    StrategyData getStrategyData();
     StrategyDNA getRandomDna();
 }

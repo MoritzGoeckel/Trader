@@ -31,6 +31,15 @@ public class BacktestMarket implements Market {
         if(isPositionOpen(instrument) != PositionType.None)
             throw new RuntimeException("Existing position on instrument " + instrument);
 
+        if(!historicPositions.isEmpty())
+            for(Position p : historicPositions){
+                if(!p.timeOut.equals(currentCandle.getLocalDateTime()))
+                    break;
+
+                if(p.instrument.equals(instrument) && type.equals(p.getType()))
+                    throw new RuntimeException("Trying to open a position just after closing on same instrument: Closed=" + p.toString() + " Opening=" + instrument + " " + type);
+            }
+
         Position p = new Position();
         p.setType(type);
         p.instrument = instrument;

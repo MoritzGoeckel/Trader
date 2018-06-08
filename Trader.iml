@@ -47,5 +47,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="Maven: org.tools4j:tools4j-meanvar:1.1" level="project" />
+    <orderEntry type="library" name="Maven: org.knowm.xchart:xchart:3.5.2" level="project" />
+    <orderEntry type="library" name="Maven: de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.13" level="project" />
   </component>
 </module>

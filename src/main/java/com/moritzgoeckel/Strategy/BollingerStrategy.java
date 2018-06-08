@@ -1,7 +1,9 @@
 package com.moritzgoeckel.Strategy;
 
+import com.moritzgoeckel.Charting.ChartAdapter;
 import com.moritzgoeckel.Data.Candle;
 import com.moritzgoeckel.Data.PositionType;
+import com.moritzgoeckel.Data.StrategyData;
 import com.moritzgoeckel.Indicators.BollingerBands;
 import com.moritzgoeckel.Indicators.SMA;
 import com.moritzgoeckel.Market.Market;
@@ -15,6 +17,8 @@ public class BollingerStrategy implements Strategy {
     private StrategyDNA dna = null;
     private BollingerBands openingBands, closingBands;
     private boolean reversed;
+
+    private StrategyData data = new StrategyData(new String[]{"openingBands", "closingBands", "weekend"}, new int[]{ChartAdapter.AxisGroup.ZeroOneTwo.ordinal(), ChartAdapter.AxisGroup.ZeroOneTwo.ordinal(), ChartAdapter.AxisGroup.ZeroOneFilled.ordinal()});
 
     @Override
     public void setDna(StrategyDNA dna) {
@@ -42,6 +46,15 @@ public class BollingerStrategy implements Strategy {
         boolean dontOpenPositions = weekDay == DayOfWeek.FRIDAY || (weekDay == DayOfWeek.THURSDAY && candle.getLocalDateTime().getHour() >= 22);
         boolean stopTrading = (weekDay == DayOfWeek.FRIDAY && candle.getLocalDateTime().getHour() >= 15) || isWeekend;
 
+        int openingValue = (int)openingBands.getIndicatorValue();
+        int closingValue = (int)closingBands.getIndicatorValue();
+
+        if(openingBands.isReady())
+            openingValue = (int)openingBands.getIndicatorValue();
+
+        if(closingBands.isReady())
+            closingValue = (int)closingBands.getIndicatorValue();
+
         if(stopTrading){
             //Market is closing, get out
             if(openPosition != PositionType.None) {
@@ -50,9 +63,6 @@ public class BollingerStrategy implements Strategy {
         }
         else {
             if (openingBands.isReady() && closingBands.isReady()) {
-                int openingValue = (int)openingBands.getIndicatorValue();
-                int closingValue = (int)closingBands.getIndicatorValue();
-
                 if(reversed){
                     if(BollingerBands.BollingerState.Higher.ordinal() == openingValue)
                         openingValue = BollingerBands.BollingerState.Lower.ordinal();
@@ -82,6 +92,8 @@ public class BollingerStrategy implements Strategy {
                 }
             }
         }
+
+        data.addData(new String[]{"openingBands", "closingBands", "weekend"}, new double[]{openingValue, closingValue, stopTrading ? 1 : 0});
     }
 
     @Override
@@ -110,6 +122,11 @@ public class BollingerStrategy implements Strategy {
         nDna.put("reversed", Math.random() > 0.5 ? 1 : 0);
 
         return nDna;
+    }
+
+    @Override
+    public StrategyData getStrategyData() {
+        return data;
     }
 
     @Override

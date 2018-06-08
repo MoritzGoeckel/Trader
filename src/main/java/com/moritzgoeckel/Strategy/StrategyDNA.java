@@ -26,4 +26,9 @@ public class StrategyDNA {
     public String getHash(){
         return strategyLogic.getName() + "_" + values.toString(); //Todo: To be tested
     }
+
+    @Override
+    public String toString() {
+        return strategyLogic.getName() + "_" + values.toString();
+    }
 }

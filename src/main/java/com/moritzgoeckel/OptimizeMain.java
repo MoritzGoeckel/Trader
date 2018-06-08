@@ -1,9 +1,9 @@
 package com.moritzgoeckel;
 
+import com.moritzgoeckel.Charting.ChartAdapter;
 import com.moritzgoeckel.Data.Candle;
 import com.moritzgoeckel.Data.CandleDownloader;
-import com.moritzgoeckel.Indicators.SMA;
-import com.moritzgoeckel.Optimizer.Backtester;
+import com.moritzgoeckel.Optimizer.Backtest;
 import com.moritzgoeckel.Optimizer.Optimizer;
 import com.moritzgoeckel.Statistics.PositionStatistics;
 import com.moritzgoeckel.Strategy.BollingerStrategy;
@@ -33,28 +33,36 @@ public class OptimizeMain {
 
         for(String instrument : instruments){
             System.out.println("############## " + instrument + " ##############");
-            List<Candle> optimizationCandles = downloader.downloadCandles(new InstrumentName(instrument), CandlestickGranularity.M10, LocalDateTime.now().minusDays(200), LocalDateTime.now().minusDays(60));
-            List<Candle> validationCandles = downloader.downloadCandles(new InstrumentName(instrument), CandlestickGranularity.M10, LocalDateTime.now().minusDays(60), LocalDateTime.now());
+            List<Candle> optimizationCandles = downloader.downloadCandles(new InstrumentName(instrument), CandlestickGranularity.H1, LocalDateTime.now().minusDays(100), LocalDateTime.now().minusDays(30));
+            List<Candle> validationCandles = downloader.downloadCandles(new InstrumentName(instrument), CandlestickGranularity.H1, LocalDateTime.now().minusDays(30), LocalDateTime.now());
 
-            Pair<StrategyDNA, PositionStatistics> pair = optimize(optimizationCandles, validationCandles);
+            ChartAdapter c = new ChartAdapter(400, 300, instrument);
+            c.addPrices(validationCandles);
+
+            Pair<StrategyDNA, Backtest> pair = optimize(optimizationCandles, validationCandles);
 
             doneValidations++;
-            if (pair.getValue().getProfit() > 0d)
+            if (pair.getValue().getStatistics().getProfit()> 0d)
                 goodValidations++;
 
-            System.out.println("Good validations: " + ((double) goodValidations / (double) doneValidations));
+            c.addPositions(pair.getValue().getStatistics());
+            c.addStrategyData(pair.getValue().getStrategyData());
+            c.show(pair.getKey().toString() + "\r\n" + "Sharpe=" + pair.getValue().getStatistics().getSharpe());
+            break;
+
+            //System.out.println("Good validations: " + ((double) goodValidations / (double) doneValidations));
         }
 
         System.out.println("DONE");
     }
 
-    private static Pair<StrategyDNA, PositionStatistics> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException, InterruptedException {
+    private static Pair<StrategyDNA, Backtest> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException, InterruptedException {
         Optimizer optimizer = new Optimizer(optimizingCandles,
-                stats -> stats.getSharpe() * (stats.getNumberTrades() > 30 ? 1 : 0)
+                stats -> stats.getSharpe() * (stats.getNumberTrades() > 5 ? 1 : 0)
         );
 
         //Todo: Somehow only SMA CROSSOVERS win
-        //optimizer.addRandomToQueue(SMACrossover.class, 100);
+        optimizer.addRandomToQueue(SMACrossover.class, 100);
         optimizer.addRandomToQueue(BollingerStrategy.class, 100); //Todo: Other strategy logic
 
         optimizer.processQueue();
@@ -75,7 +83,7 @@ public class OptimizeMain {
 
             int fillSeeds = 500 - optimizer.getQueueLength();
             if(fillSeeds > 0) {
-                //optimizer.addRandomToQueue(SMACrossover.class, fillSeeds / 2);
+                optimizer.addRandomToQueue(SMACrossover.class, fillSeeds / 2);
                 optimizer.addRandomToQueue(BollingerStrategy.class, fillSeeds / 2);
             }
 
@@ -95,11 +103,14 @@ public class OptimizeMain {
 
         List<Map.Entry<Double, StrategyDNA>> best = optimizer.getLeaderboard(10);
 
-        PositionStatistics optStats = Backtester.backtest(optimizingCandles, best.get(0).getValue());
-        PositionStatistics stats = Backtester.backtest(validationCandles, best.get(0).getValue());
+        Backtest optimizationBacktest = new Backtest(optimizingCandles, best.get(0).getValue());
+        PositionStatistics optStats = optimizationBacktest.getStatistics();
+
+        Backtest validationBacktest = new Backtest(validationCandles, best.get(0).getValue());
+        PositionStatistics stats = validationBacktest.getStatistics();
 
         //Verbose
-        if(false) {
+        if(true) {
             System.out.println("# WINNER #");
             System.out.println(best.get(0).getValue().getHash());
 
@@ -114,6 +125,6 @@ public class OptimizeMain {
             System.out.println(Formatting.round(stats.getSharpe(), 2) + "\t\t" + best.get(0).getValue().getHash());
         }
 
-        return new Pair<>(best.get(0).getValue(), stats);
+        return new Pair<>(best.get(0).getValue(), validationBacktest);
     }
 }

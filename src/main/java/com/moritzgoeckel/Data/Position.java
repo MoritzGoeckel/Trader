@@ -38,4 +38,9 @@ public class Position{
     public long getDurationSeconds(){
         return timeIn.until(timeOut, ChronoUnit.SECONDS);
     }
+
+    @Override
+    public String toString() {
+        return "{POSITION:"+ instrument + " type=" + type + " in=" + in + " out="+ out + " timeIn=" + timeIn.toString() + " timeOut=" + timeOut.toString()+ "}";
+    }
 }
