@@ -29,7 +29,7 @@ public class TestStrategyMain {
         //String insts = "SUGAR_USD|WHEAT_USD|XPD_USD|DE10YB_EUR|NL25_EUR|DE30_EUR|NAS100_USD";
         //List<String> instruments = Arrays.asList(insts.split("\\|"));
 
-        String instrument = "SUGAR_USD";
+        String instrument = "DE10YB_EUR";
         StrategyDNA dna = new StrategyDNA(SMACrossover.class).put("sma1", 20).put("sma2", 80);
 
         List<Candle> candles = downloader.downloadCandles(new InstrumentName(instrument), CandlestickGranularity.H1, LocalDateTime.now().minusDays(300), LocalDateTime.now());

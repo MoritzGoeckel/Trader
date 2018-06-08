@@ -158,12 +158,18 @@ public class ChartAdapter {
         for(Map.Entry<String, LinkedList<Double>> entry : internalData.entrySet()){
 
             int axisGroup = data.getAxisGroup(entry.getKey());
+
+            //Do not allow 0 in price chart
+            if(axisGroup == AxisGroup.Price.ordinal()){
+                entry.getValue().replaceAll(d -> d == 0 ? Double.NaN : d);
+            }
+
             if(axisGroup == AxisGroup.ZeroOneFilled.ordinal()) {
-                chart.addSeries("[" + entry.getKey() + "]", entry.getValue())
-                        .setXYSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Area)
-                        .setLineColor(new Color(0, 0, 0, 0))
-                        .setFillColor(new Color(0, 0, 0, 50))
-                        .setYAxisGroup(AxisGroup.ZeroOne.ordinal());
+            chart.addSeries("[" + entry.getKey() + "]", entry.getValue())
+                    .setXYSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Area)
+                    .setLineColor(new Color(0, 0, 0, 0))
+                    .setFillColor(new Color(0, 0, 0, 50))
+                    .setYAxisGroup(AxisGroup.ZeroOne.ordinal());
             }
             else
                 chart.addSeries("[" + entry.getKey() + "]", entry.getValue())
