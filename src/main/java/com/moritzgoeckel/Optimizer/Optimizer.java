@@ -31,9 +31,11 @@ public class Optimizer {
             tasks.add(() -> {
                 Backtest backtest = new Backtest(candleList, dna);
                 double score = scoringFunction.apply(backtest.getStatistics());
-                synchronized (leaderboard) {
-                    if(!leaderboard.containsKey(score)) //Todo: Really. Maybe multimap?
-                        leaderboard.put(score, dna);
+                if(!Double.isNaN(score)) {
+                    synchronized (leaderboard) {
+                        if (!leaderboard.containsKey(score)) //Todo: Really. Maybe multimap?
+                            leaderboard.put(score, dna);
+                    }
                 }
                 return null;
             });

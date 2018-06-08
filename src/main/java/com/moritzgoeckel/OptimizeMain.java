@@ -48,9 +48,9 @@ public class OptimizeMain {
             c.addPositions(pair.getValue().getStatistics());
             c.addStrategyData(pair.getValue().getStrategyData());
             c.show(pair.getKey().toString() + "\r\n" + "Sharpe=" + pair.getValue().getStatistics().getSharpe());
-            break;
 
-            //System.out.println("Good validations: " + ((double) goodValidations / (double) doneValidations));
+            System.out.println("Good validations: " + ((double) goodValidations / (double) doneValidations));
+            break;//Todo remove
         }
 
         System.out.println("DONE");
@@ -58,7 +58,7 @@ public class OptimizeMain {
 
     private static Pair<StrategyDNA, Backtest> optimize(List<Candle> optimizingCandles, List<Candle> validationCandles) throws InstantiationException, IllegalAccessException, InterruptedException {
         Optimizer optimizer = new Optimizer(optimizingCandles,
-                stats -> stats.getSharpe() * (stats.getNumberTrades() > 5 ? 1 : 0)
+                stats -> stats.getSemiSharpe() * (stats.getNumberTrades() > 5 ? 1 : 0)
         );
 
         //Todo: Somehow only SMA CROSSOVERS win

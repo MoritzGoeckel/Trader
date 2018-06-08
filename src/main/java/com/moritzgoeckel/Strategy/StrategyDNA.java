@@ -11,8 +11,9 @@ public class StrategyDNA {
         this.strategyLogic = strategyLogic;
     }
 
-    public void put(String key, double value){
+    public StrategyDNA put(String key, double value){
         values.put(key, value);
+        return this;
     }
 
     public double get(String key){

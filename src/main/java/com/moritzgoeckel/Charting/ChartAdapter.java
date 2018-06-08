@@ -55,13 +55,13 @@ public class ChartAdapter {
         checkLength(mids);
         chart.addSeries("Mid", mids).setYAxisGroup(AxisGroup.Price.ordinal());
 
-        double[] bids = candles.stream().flatMapToDouble(c -> DoubleStream.of(c.getBid().getC().doubleValue())).toArray();
+        /*double[] bids = candles.stream().flatMapToDouble(c -> DoubleStream.of(c.getBid().getC().doubleValue())).toArray();
         checkLength(bids);
         chart.addSeries("Bid", bids).setYAxisGroup(AxisGroup.Price.ordinal());
 
         double[] asks = candles.stream().flatMapToDouble(c -> DoubleStream.of(c.getAsk().getC().doubleValue())).toArray();
         checkLength(asks);
-        chart.addSeries("Ask", asks).setYAxisGroup(AxisGroup.Price.ordinal());
+        chart.addSeries("Ask", asks).setYAxisGroup(AxisGroup.Price.ordinal());*/
 
         times = candles.stream().map(Candle::getLocalDateTime).collect(Collectors.toList());
     }
